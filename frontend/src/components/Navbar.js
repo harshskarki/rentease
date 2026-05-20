@@ -15,7 +15,7 @@ const Navbar = () => {
 
   return (
     <nav style={styles.nav}>
-      <Link to="/" style={styles.logo}>?? RentEase</Link>
+      <Link to="/" style={styles.logo}>RentEase</Link>
       <div style={styles.links}>
         <Link to="/" style={styles.link}>Browse</Link>
         {user ? (
