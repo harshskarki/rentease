@@ -60,7 +60,7 @@ const ItemDetail = () => {
           </div>
           <h1 style={styles.title}>{item.title}</h1>
           <span style={styles.badge}>{item.category}</span>
-          <p style={styles.location}>?? {item.location.city}, {item.location.state}</p>
+          <p style={styles.location}>Location: {item.location.city}, {item.location.state}</p>
           <p style={styles.description}>{item.description}</p>
           <div style={styles.ownerBox}>
             <p style={styles.ownerLabel}>Listed by</p>
@@ -70,7 +70,7 @@ const ItemDetail = () => {
         </div>
         <div style={styles.right}>
           <div style={styles.bookingCard}>
-            <p style={styles.price}>?{item.pricePerDay}<span style={styles.perDay}>/day</span></p>
+            <p style={styles.price}>Rs.{item.pricePerDay}<span style={styles.perDay}>/day</span></p>
             <form onSubmit={handleBooking}>
               <div style={styles.field}>
                 <label style={styles.label}>Start Date</label>
@@ -83,7 +83,7 @@ const ItemDetail = () => {
               {totalDays > 0 && (
                 <div style={styles.summary}>
                   <p>Total Days: <strong>{totalDays}</strong></p>
-                  <p>Total Amount: <strong>?{totalDays * item.pricePerDay}</strong></p>
+                  <p>Total Amount: <strong>Rs.{totalDays * item.pricePerDay}</strong></p>
                 </div>
               )}
               <button type="submit" style={styles.btn} disabled={booking}>
