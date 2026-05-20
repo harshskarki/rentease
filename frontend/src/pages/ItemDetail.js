@@ -125,3 +125,4 @@ const styles = {
 };
 
 export default ItemDetail;
+
