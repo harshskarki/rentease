@@ -31,7 +31,16 @@ const getItemById = async (req, res) => {
 
 const createItem = async (req, res) => {
   try {
-    const item = await Item.create({ ...req.body, owner: req.user._id });
+    const images = req.files ? req.files.map(file => file.path) : [];
+    const location = typeof req.body.location === 'string'
+      ? JSON.parse(req.body.location)
+      : req.body.location;
+    const item = await Item.create({
+      ...req.body,
+      location,
+      images,
+      owner: req.user._id,
+    });
     res.status(201).json({ success: true, item });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -45,7 +54,17 @@ const updateItem = async (req, res) => {
     if (item.owner.toString() !== req.user._id.toString()) {
       return res.status(403).json({ success: false, message: 'Not authorized' });
     }
-    const updated = await Item.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+    const images = req.files && req.files.length > 0
+      ? req.files.map(file => file.path)
+      : item.images;
+    const location = req.body.location
+      ? (typeof req.body.location === 'string' ? JSON.parse(req.body.location) : req.body.location)
+      : item.location;
+    const updated = await Item.findByIdAndUpdate(
+      req.params.id,
+      { ...req.body, location, images },
+      { new: true, runValidators: true }
+    );
     res.json({ success: true, item: updated });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

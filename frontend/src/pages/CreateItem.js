@@ -5,22 +5,31 @@ import toast from 'react-hot-toast';
 
 const CreateItem = () => {
   const [form, setForm] = useState({ title: '', description: '', category: 'bikes', pricePerDay: '', city: '', state: '', pincode: '' });
+  const [images, setImages] = useState([]);
+  const [previews, setPreviews] = useState([]);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
+  const handleImages = (e) => {
+    const files = Array.from(e.target.files);
+    setImages(files);
+    setPreviews(files.map(f => URL.createObjectURL(f)));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await API.post('/items', {
-        title: form.title,
-        description: form.description,
-        category: form.category,
-        pricePerDay: Number(form.pricePerDay),
-        location: { city: form.city, state: form.state, pincode: form.pincode },
-      });
+      const formData = new FormData();
+      formData.append('title', form.title);
+      formData.append('description', form.description);
+      formData.append('category', form.category);
+      formData.append('pricePerDay', form.pricePerDay);
+      formData.append('location', JSON.stringify({ city: form.city, state: form.state, pincode: form.pincode }));
+      images.forEach(img => formData.append('images', img));
+      await API.post('/items', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
       toast.success('Item listed successfully!');
       navigate('/dashboard');
     } catch (err) {
@@ -72,6 +81,17 @@ const CreateItem = () => {
             <label style={styles.label}>Pincode</label>
             <input name="pincode" value={form.pincode} onChange={handleChange} style={styles.input} placeholder="400001" />
           </div>
+          <div style={styles.field}>
+            <label style={styles.label}>Images (up to 5)</label>
+            <input type="file" accept="image/*" multiple onChange={handleImages} style={styles.input} />
+            {previews.length > 0 && (
+              <div style={styles.previews}>
+                {previews.map((p, i) => (
+                  <img key={i} src={p} alt="preview" style={styles.preview} />
+                ))}
+              </div>
+            )}
+          </div>
           <button type="submit" style={styles.btn} disabled={loading}>
             {loading ? 'Listing...' : 'List Item'}
           </button>
@@ -91,6 +111,8 @@ const styles = {
   input: { width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '1rem', boxSizing: 'border-box' },
   textarea: { width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '1rem', boxSizing: 'border-box', minHeight: '100px', resize: 'vertical' },
   row: { display: 'flex', gap: '1rem' },
+  previews: { display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.5rem' },
+  preview: { width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #d1d5db' },
   btn: { width: '100%', padding: '0.75rem', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '1rem', fontWeight: 'bold', cursor: 'pointer', marginTop: '0.5rem' },
 };
 
