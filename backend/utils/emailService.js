@@ -1,18 +1,10 @@
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
-const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST,
-  port: process.env.EMAIL_PORT,
-  secure: process.env.EMAIL_SECURE === "true",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const sendBookingConfirmationToOwner = async (ownerEmail, ownerName, renterName, itemTitle, startDate, endDate, totalAmount) => {
-  await transporter.sendMail({
-    from: `"RentEase" <${process.env.EMAIL_USER}>`,
+  await resend.emails.send({
+    from: 'RentEase <onboarding@resend.dev>',
     to: ownerEmail,
     subject: 'New Booking Request - RentEase',
     html: `
@@ -28,7 +20,6 @@ const sendBookingConfirmationToOwner = async (ownerEmail, ownerName, renterName,
           <p><strong>Total Amount:</strong> Rs.${totalAmount}</p>
         </div>
         <p>Login to your dashboard to confirm or reject this booking.</p>
-        <a href="${process.env.CLIENT_URL}/dashboard" style="background: #2563eb; color: white; padding: 0.75rem 1.5rem; border-radius: 8px; text-decoration: none;">View Dashboard</a>
         <p style="margin-top: 2rem; color: #6b7280;">RentEase Team</p>
       </div>
     `,
@@ -37,8 +28,8 @@ const sendBookingConfirmationToOwner = async (ownerEmail, ownerName, renterName,
 
 const sendBookingStatusToRenter = async (renterEmail, renterName, itemTitle, status, startDate, endDate, totalAmount) => {
   const isConfirmed = status === 'confirmed';
-  await transporter.sendMail({
-    from: `"RentEase" <${process.env.EMAIL_USER}>`,
+  await resend.emails.send({
+    from: 'RentEase <onboarding@resend.dev>',
     to: renterEmail,
     subject: `Booking ${isConfirmed ? 'Confirmed' : 'Rejected'} - RentEase`,
     html: `
@@ -54,7 +45,6 @@ const sendBookingStatusToRenter = async (renterEmail, renterName, itemTitle, sta
           <p><strong>Status:</strong> ${status}</p>
         </div>
         ${isConfirmed ? '<p>Your booking is confirmed! Enjoy your rental.</p>' : '<p>Sorry, the owner was unable to confirm your booking at this time.</p>'}
-        <a href="${process.env.CLIENT_URL}/dashboard" style="background: #2563eb; color: white; padding: 0.75rem 1.5rem; border-radius: 8px; text-decoration: none;">View Dashboard</a>
         <p style="margin-top: 2rem; color: #6b7280;">RentEase Team</p>
       </div>
     `,
@@ -62,4 +52,3 @@ const sendBookingStatusToRenter = async (renterEmail, renterName, itemTitle, sta
 };
 
 module.exports = { sendBookingConfirmationToOwner, sendBookingStatusToRenter };
-
