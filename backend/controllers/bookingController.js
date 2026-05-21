@@ -1,5 +1,7 @@
 const Booking = require('../models/Booking');
 const Item = require('../models/Item');
+const User = require('../models/User');
+const { sendBookingConfirmationToOwner, sendBookingStatusToRenter } = require('../utils/emailService');
 
 const createBooking = async (req, res) => {
   try {
@@ -26,6 +28,15 @@ const createBooking = async (req, res) => {
       notes,
     });
     await booking.populate(['item', 'renter', 'owner']);
+    try {
+      const owner = await User.findById(item.owner);
+      await sendBookingConfirmationToOwner(
+        owner.email, owner.name, req.user.name,
+        item.title, start, end, totalAmount
+      );
+    } catch (emailErr) {
+      console.error('Email error:', emailErr.message);
+    }
     res.status(201).json({ success: true, booking });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -67,13 +78,22 @@ const getBookingById = async (req, res) => {
 const updateBookingStatus = async (req, res) => {
   try {
     const { status } = req.body;
-    const booking = await Booking.findById(req.params.id);
+    const booking = await Booking.findById(req.params.id).populate('item renter');
     if (!booking) return res.status(404).json({ success: false, message: 'Booking not found' });
     if (booking.owner.toString() !== req.user._id.toString()) {
       return res.status(403).json({ success: false, message: 'Not authorized' });
     }
     booking.status = status;
     await booking.save();
+    try {
+      await sendBookingStatusToRenter(
+        booking.renter.email, booking.renter.name,
+        booking.item.title, status,
+        booking.startDate, booking.endDate, booking.totalAmount
+      );
+    } catch (emailErr) {
+      console.error('Email error:', emailErr.message);
+    }
     res.json({ success: true, booking });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
