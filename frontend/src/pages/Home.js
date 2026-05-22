@@ -75,7 +75,7 @@ const Home = () => {
               <div style={styles.cardBody}>
                 <h3 style={styles.cardTitle}>{item.title}</h3>
                 <p style={styles.cardCity}>{item.location.city}</p>
-                <p style={styles.cardPrice}>?{item.pricePerDay}/day</p>
+                <p style={styles.cardPrice}>Rs.{item.pricePerDay}/day</p>
                 <span style={styles.badge}>{item.category}</span>
               </div>
             </Link>
