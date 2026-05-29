@@ -33,6 +33,8 @@ A modern full-stack rental marketplace where users can list items for rent, disc
 
 🔐 Authentication System
 
+✔ Razorpay Payment Integration
+
 Secure Register/Login system
 
 JWT-based authentication
