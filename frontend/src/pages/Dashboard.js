@@ -56,6 +56,43 @@ const Dashboard = () => {
     }
   };
 
+  const handlePayment = async (booking) => {
+    try {
+      const { data } = await API.post('/payments/order', { bookingId: booking._id });
+      const options = {
+        key: data.key,
+        amount: data.order.amount,
+        currency: 'INR',
+        name: 'RentEase',
+        description: `Booking for ${booking.item?.title}`,
+        order_id: data.order.id,
+        handler: async (response) => {
+          try {
+            await API.post('/payments/verify', {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              bookingId: booking._id,
+            });
+            toast.success('Payment successful!');
+            fetchData();
+          } catch (err) {
+            toast.error('Payment verification failed');
+          }
+        },
+        prefill: {
+          name: user.name,
+          email: user.email,
+        },
+        theme: { color: '#2563eb' },
+      };
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (err) {
+      toast.error('Payment failed');
+    }
+  };
+
   if (loading) return <p style={styles.loading}>Loading dashboard...</p>;
 
   return (
@@ -88,7 +125,7 @@ const Dashboard = () => {
                 <div key={item._id} style={styles.listItem}>
                   <div>
                     <p style={styles.itemTitle}>{item.title}</p>
-                    <p style={styles.itemSub}>{item.location.city} • ?{item.pricePerDay}/day • {item.category}</p>
+                    <p style={styles.itemSub}>{item.location.city} - Rs.{item.pricePerDay}/day - {item.category}</p>
                   </div>
                   <button onClick={() => deleteItem(item._id)} style={styles.deleteBtn}>Delete</button>
                 </div>
@@ -106,9 +143,17 @@ const Dashboard = () => {
                 <div key={b._id} style={styles.listItem}>
                   <div>
                     <p style={styles.itemTitle}>{b.item?.title}</p>
-                    <p style={styles.itemSub}>{new Date(b.startDate).toLocaleDateString()} ? {new Date(b.endDate).toLocaleDateString()} • ?{b.totalAmount}</p>
+                    <p style={styles.itemSub}>{new Date(b.startDate).toLocaleDateString()} - {new Date(b.endDate).toLocaleDateString()} - Rs.{b.totalAmount}</p>
                   </div>
-                  <span style={{ ...styles.statusBadge, background: b.status === 'confirmed' ? '#d1fae5' : b.status === 'cancelled' ? '#fee2e2' : '#fef3c7', color: b.status === 'confirmed' ? '#065f46' : b.status === 'cancelled' ? '#991b1b' : '#92400e' }}>{b.status}</span>
+                  <div style={styles.actions}>
+                    {b.status === 'confirmed' && b.payment?.status !== 'paid' && (
+                      <button onClick={() => handlePayment(b)} style={styles.payBtn}>Pay Now</button>
+                    )}
+                    {b.payment?.status === 'paid' && (
+                      <span style={styles.paidBadge}>Paid</span>
+                    )}
+                    <span style={{ ...styles.statusBadge, background: b.status === 'confirmed' ? '#d1fae5' : b.status === 'cancelled' ? '#fee2e2' : '#fef3c7', color: b.status === 'confirmed' ? '#065f46' : b.status === 'cancelled' ? '#991b1b' : '#92400e' }}>{b.status}</span>
+                  </div>
                 </div>
               ))}
             </div>
@@ -123,8 +168,8 @@ const Dashboard = () => {
               {ownerBookings.map(b => (
                 <div key={b._id} style={styles.listItem}>
                   <div>
-                    <p style={styles.itemTitle}>{b.item?.title} — booked by {b.renter?.name}</p>
-                    <p style={styles.itemSub}>{new Date(b.startDate).toLocaleDateString()} ? {new Date(b.endDate).toLocaleDateString()} • ?{b.totalAmount}</p>
+                    <p style={styles.itemTitle}>{b.item?.title} - booked by {b.renter?.name}</p>
+                    <p style={styles.itemSub}>{new Date(b.startDate).toLocaleDateString()} - {new Date(b.endDate).toLocaleDateString()} - Rs.{b.totalAmount}</p>
                   </div>
                   {b.status === 'pending' && (
                     <div style={styles.actions}>
@@ -164,12 +209,13 @@ const styles = {
   itemSub: { color: '#6b7280', fontSize: '0.85rem', margin: 0 },
   deleteBtn: { background: '#fee2e2', color: '#991b1b', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' },
   statusBadge: { padding: '0.3rem 0.8rem', borderRadius: '20px', fontSize: '0.8rem', fontWeight: '500' },
-  actions: { display: 'flex', gap: '0.5rem' },
+  actions: { display: 'flex', gap: '0.5rem', alignItems: 'center' },
   confirmBtn: { background: '#d1fae5', color: '#065f46', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' },
   rejectBtn: { background: '#fee2e2', color: '#991b1b', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' },
+  payBtn: { background: '#2563eb', color: '#fff', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' },
+  paidBadge: { background: '#d1fae5', color: '#065f46', padding: '0.3rem 0.8rem', borderRadius: '20px', fontSize: '0.8rem', fontWeight: '500' },
   empty: { textAlign: 'center', padding: '2rem', color: '#9ca3af' },
   loading: { textAlign: 'center', padding: '3rem', color: '#6b7280' },
 };
 
 export default Dashboard;
-
