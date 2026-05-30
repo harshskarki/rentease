@@ -24,7 +24,11 @@ const userSchema = new mongoose.Schema({
   },
   phone: { type: String, trim: true },
   avatar: { type: String, default: '' },
+  city: { type: String, trim: true },
+  bio: { type: String, maxlength: 300 },
   role: { type: String, enum: ['user', 'admin'], default: 'user' },
+  rating: { type: Number, default: 0 },
+  numReviews: { type: Number, default: 0 },
 }, { timestamps: true });
 
 userSchema.pre('save', async function (next) {

@@ -19,31 +19,33 @@ const Navbar = ({ darkMode, setDarkMode }) => {
     boxShadow: '0 2px 8px rgba(0,0,0,0.1)', position: 'sticky', top: 0, zIndex: 100,
   };
 
+  const linkStyle = { textDecoration: 'none', color: darkMode ? '#d1d5db' : '#374151', fontWeight: '500' };
+
   return (
     <nav style={nav}>
       <Link to="/" style={{ fontSize: '1.5rem', fontWeight: 'bold', textDecoration: 'none', color: '#2563eb' }}>
         RentEase
       </Link>
       <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-        <Link to="/" style={{ textDecoration: 'none', color: darkMode ? '#d1d5db' : '#374151', fontWeight: '500' }}>Browse</Link>
+        <Link to="/" style={linkStyle}>Browse</Link>
         {user ? (
           <>
-            <Link to="/create-item" style={{ textDecoration: 'none', color: darkMode ? '#d1d5db' : '#374151', fontWeight: '500' }}>List Item</Link>
-            <Link to="/dashboard" style={{ textDecoration: 'none', color: darkMode ? '#d1d5db' : '#374151', fontWeight: '500' }}>Dashboard</Link>
-            <span style={{ color: '#6b7280', fontSize: '0.9rem' }}>Hi, {user.name}</span>
+            <Link to="/create-item" style={linkStyle}>List Item</Link>
+            <Link to="/dashboard" style={linkStyle}>Dashboard</Link>
+            <Link to="/profile" style={linkStyle}>Profile</Link>
             <button onClick={handleLogout} style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '0.5rem 1rem', borderRadius: '8px', cursor: 'pointer', fontWeight: '500' }}>Logout</button>
           </>
         ) : (
           <>
-            <Link to="/login" style={{ textDecoration: 'none', color: darkMode ? '#d1d5db' : '#374151', fontWeight: '500' }}>Login</Link>
+            <Link to="/login" style={linkStyle}>Login</Link>
             <Link to="/register" style={{ textDecoration: 'none', background: '#2563eb', color: '#fff', padding: '0.5rem 1rem', borderRadius: '8px', fontWeight: '500' }}>Register</Link>
           </>
         )}
         <button
           onClick={() => setDarkMode(!darkMode)}
-          style={{ background: darkMode ? '#374151' : '#f3f4f6', border: 'none', padding: '0.5rem 0.75rem', borderRadius: '8px', cursor: 'pointer', fontSize: '1.2rem' }}
+          style={{ background: darkMode ? '#374151' : '#f3f4f6', border: 'none', padding: '0.5rem 0.75rem', borderRadius: '8px', cursor: 'pointer', color: darkMode ? '#f9fafb' : '#111827', fontWeight: '500' }}
         >
-          {darkMode ? '☀️' : '🌙'}
+          {darkMode ? 'Light' : 'Dark'}
         </button>
       </div>
     </nav>

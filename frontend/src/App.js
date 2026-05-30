@@ -8,6 +8,8 @@ import Register from './pages/Register';
 import ItemDetail from './pages/ItemDetail';
 import CreateItem from './pages/CreateItem';
 import Dashboard from './pages/Dashboard';
+import Profile from './pages/Profile';
+import PublicProfile from './pages/PublicProfile';
 import Navbar from './components/Navbar';
 
 function App() {
@@ -34,6 +36,8 @@ function App() {
             <Route path="/items/:id" element={<ItemDetail darkMode={darkMode} />} />
             <Route path="/create-item" element={<CreateItem darkMode={darkMode} />} />
             <Route path="/dashboard" element={<Dashboard darkMode={darkMode} />} />
+            <Route path="/profile" element={<Profile darkMode={darkMode} />} />
+            <Route path="/users/:id" element={<PublicProfile darkMode={darkMode} />} />
           </Routes>
         </div>
       </Router>

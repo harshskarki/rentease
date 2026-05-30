@@ -1,9 +1,26 @@
 const User = require('../models/User');
+const Item = require('../models/Item');
+const Booking = require('../models/Booking');
+const { cloudinary, upload } = require('../config/cloudinary');
 
 const getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
-    res.json({ success: true, user });
+    const totalItems = await Item.countDocuments({ owner: req.user._id });
+    const totalBookings = await Booking.countDocuments({ renter: req.user._id });
+    res.json({ success: true, user, stats: { totalItems, totalBookings } });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+const getPublicProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select('-password');
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    const items = await Item.find({ owner: req.params.id });
+    const totalBookings = await Booking.countDocuments({ renter: req.params.id });
+    res.json({ success: true, user, items, stats: { totalItems: items.length, totalBookings } });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -11,10 +28,14 @@ const getProfile = async (req, res) => {
 
 const updateProfile = async (req, res) => {
   try {
-    const { name, phone, avatar } = req.body;
+    const { name, phone, city, bio } = req.body;
+    let avatar = req.user.avatar;
+    if (req.file) {
+      avatar = req.file.path;
+    }
     const user = await User.findByIdAndUpdate(
       req.user._id,
-      { name, phone, avatar },
+      { name, phone, city, bio, avatar },
       { new: true, runValidators: true }
     );
     res.json({ success: true, user });
@@ -38,4 +59,15 @@ const changePassword = async (req, res) => {
   }
 };
 
-module.exports = { getProfile, updateProfile, changePassword };
+const deleteAccount = async (req, res) => {
+  try {
+    await Item.deleteMany({ owner: req.user._id });
+    await Booking.deleteMany({ renter: req.user._id });
+    await User.findByIdAndDelete(req.user._id);
+    res.json({ success: true, message: 'Account deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+module.exports = { getProfile, getPublicProfile, updateProfile, changePassword, deleteAccount };
