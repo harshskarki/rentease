@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
@@ -11,19 +11,31 @@ import Dashboard from './pages/Dashboard';
 import Navbar from './components/Navbar';
 
 function App() {
+  const [darkMode, setDarkMode] = useState(() => {
+    return localStorage.getItem('darkMode') === 'true';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('darkMode', darkMode);
+    document.body.style.background = darkMode ? '#111827' : '#f9fafb';
+    document.body.style.color = darkMode ? '#f9fafb' : '#111827';
+  }, [darkMode]);
+
   return (
     <AuthProvider>
       <Router>
         <Toaster position="top-right" />
-        <Navbar />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/items/:id" element={<ItemDetail />} />
-          <Route path="/create-item" element={<CreateItem />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-        </Routes>
+        <Navbar darkMode={darkMode} setDarkMode={setDarkMode} />
+        <div style={{ minHeight: '100vh', background: darkMode ? '#111827' : '#f9fafb', color: darkMode ? '#f9fafb' : '#111827' }}>
+          <Routes>
+            <Route path="/" element={<Home darkMode={darkMode} />} />
+            <Route path="/login" element={<Login darkMode={darkMode} />} />
+            <Route path="/register" element={<Register darkMode={darkMode} />} />
+            <Route path="/items/:id" element={<ItemDetail darkMode={darkMode} />} />
+            <Route path="/create-item" element={<CreateItem darkMode={darkMode} />} />
+            <Route path="/dashboard" element={<Dashboard darkMode={darkMode} />} />
+          </Routes>
+        </div>
       </Router>
     </AuthProvider>
   );
