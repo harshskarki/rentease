@@ -7,19 +7,24 @@ const Home = ({ darkMode }) => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
 
   useEffect(() => {
     fetchItems();
-  }, [category]);
+  }, [category, page]);
 
   const fetchItems = async () => {
     try {
       setLoading(true);
-      const params = {};
+      const params = { page, limit: 6 };
       if (category) params.category = category;
       if (search) params.city = search;
       const { data } = await API.get('/items', { params });
       setItems(data.items);
+      setTotalPages(data.totalPages);
+      setTotal(data.total);
     } catch (err) {
       console.error(err);
     } finally {
@@ -29,7 +34,13 @@ const Home = ({ darkMode }) => {
 
   const handleSearch = (e) => {
     e.preventDefault();
+    setPage(1);
     fetchItems();
+  };
+
+  const handleCategory = (cat) => {
+    setCategory(cat);
+    setPage(1);
   };
 
   const bg = darkMode ? '#111827' : '#f9fafb';
@@ -51,19 +62,21 @@ const Home = ({ darkMode }) => {
 
       <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', margin: '1rem 0' }}>
         {['', 'bikes', 'gadgets', 'tools', 'furniture', 'sports', 'vehicles', 'other'].map((cat) => (
-          <button key={cat} onClick={() => setCategory(cat)}
+          <button key={cat} onClick={() => handleCategory(cat)}
             style={{ padding: '0.5rem 1rem', borderRadius: '20px', border: `1px solid ${category === cat ? '#2563eb' : border}`, background: category === cat ? '#2563eb' : card, color: category === cat ? '#fff' : text, cursor: 'pointer', fontWeight: '500' }}>
             {cat === '' ? 'All' : cat.charAt(0).toUpperCase() + cat.slice(1)}
           </button>
         ))}
       </div>
 
+      {total > 0 && <p style={{ color: subText, margin: '0.5rem 0' }}>Showing {items.length} of {total} items</p>}
+
       {loading ? (
         <p style={{ textAlign: 'center', padding: '3rem', color: subText }}>Loading items...</p>
       ) : items.length === 0 ? (
         <p style={{ textAlign: 'center', padding: '3rem', color: subText }}>No items found. Be the first to list one!</p>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem', margin: '1rem 0 3rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem', margin: '1rem 0' }}>
           {items.map((item) => (
             <Link to={`/items/${item._id}`} key={item._id} style={{ textDecoration: 'none', color: 'inherit', background: card, borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', overflow: 'hidden', display: 'block' }}>
               <div style={{ height: '180px', background: darkMode ? '#374151' : '#f3f4f6' }}>
@@ -77,6 +90,34 @@ const Home = ({ darkMode }) => {
               </div>
             </Link>
           ))}
+        </div>
+      )}
+
+      {totalPages > 1 && (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', margin: '2rem 0 3rem' }}>
+          <button
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={page === 1}
+            style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: `1px solid ${border}`, background: card, color: text, cursor: page === 1 ? 'not-allowed' : 'pointer', opacity: page === 1 ? 0.5 : 1 }}
+          >
+            Previous
+          </button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+            <button
+              key={p}
+              onClick={() => setPage(p)}
+              style={{ padding: '0.5rem 0.75rem', borderRadius: '8px', border: `1px solid ${p === page ? '#2563eb' : border}`, background: p === page ? '#2563eb' : card, color: p === page ? '#fff' : text, cursor: 'pointer', fontWeight: p === page ? 'bold' : 'normal' }}
+            >
+              {p}
+            </button>
+          ))}
+          <button
+            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages}
+            style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: `1px solid ${border}`, background: card, color: text, cursor: page === totalPages ? 'not-allowed' : 'pointer', opacity: page === totalPages ? 0.5 : 1 }}
+          >
+            Next
+          </button>
         </div>
       )}
     </div>

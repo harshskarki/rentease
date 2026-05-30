@@ -2,7 +2,7 @@ const Item = require('../models/Item');
 
 const getAllItems = async (req, res) => {
   try {
-    const { category, city, minPrice, maxPrice, search } = req.query;
+    const { category, city, minPrice, maxPrice, search, page = 1, limit = 6 } = req.query;
     let query = {};
     if (category) query.category = category;
     if (city) query['location.city'] = new RegExp(city, 'i');
@@ -12,8 +12,15 @@ const getAllItems = async (req, res) => {
       if (maxPrice) query.pricePerDay.$lte = Number(maxPrice);
     }
     if (search) query.$text = { $search: search };
-    const items = await Item.find(query).populate('owner', 'name email phone avatar');
-    res.json({ success: true, count: items.length, items });
+
+    const total = await Item.countDocuments(query);
+    const totalPages = Math.ceil(total / limit);
+    const items = await Item.find(query)
+      .populate('owner', 'name email phone avatar')
+      .skip((page - 1) * limit)
+      .limit(Number(limit));
+
+    res.json({ success: true, count: items.length, total, totalPages, currentPage: Number(page), items });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
