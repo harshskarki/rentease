@@ -110,7 +110,7 @@ const Profile = ({ darkMode }) => {
           <div>
             <h2 style={{ margin: '0 0 0.25rem', color: text, fontSize: '1.5rem', fontWeight: 'bold' }}>{profile?.name}</h2>
             <p style={{ margin: '0 0 0.25rem', color: subText }}>{profile?.email}</p>
-            {profile?.city && <p style={{ margin: '0', color: subText }}>?? {profile?.city}</p>}
+            {profile?.city && <p style={{ margin: '0', color: subText }}>City: {profile?.city}</p>}
             <p style={{ margin: '0.25rem 0 0', color: subText, fontSize: '0.85rem' }}>Member since {new Date(profile?.createdAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'long' })}</p>
           </div>
           <button onClick={() => setEditing(!editing)} style={{ marginLeft: 'auto', background: '#2563eb', color: '#fff', border: 'none', padding: '0.5rem 1rem', borderRadius: '8px', cursor: 'pointer', fontWeight: '500' }}>
