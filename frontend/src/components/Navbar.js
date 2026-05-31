@@ -31,6 +31,7 @@ const Navbar = ({ darkMode, setDarkMode }) => {
         {user ? (
           <>
             <Link to="/create-item" style={linkStyle}>List Item</Link>
+            <Link to="/wishlist" style={linkStyle}>Wishlist</Link>
             <Link to="/dashboard" style={linkStyle}>Dashboard</Link>
             <Link to="/profile" style={linkStyle}>Profile</Link>
             <button onClick={handleLogout} style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '0.5rem 1rem', borderRadius: '8px', cursor: 'pointer', fontWeight: '500' }}>Logout</button>

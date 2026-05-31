@@ -29,6 +29,7 @@ const userSchema = new mongoose.Schema({
   role: { type: String, enum: ['user', 'admin'], default: 'user' },
   rating: { type: Number, default: 0 },
   numReviews: { type: Number, default: 0 },
+  wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Item' }],
 }, { timestamps: true });
 
 userSchema.pre('save', async function (next) {

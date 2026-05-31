@@ -10,6 +10,7 @@ import CreateItem from './pages/CreateItem';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import PublicProfile from './pages/PublicProfile';
+import Wishlist from './pages/Wishlist';
 import Navbar from './components/Navbar';
 
 function App() {
@@ -38,6 +39,7 @@ function App() {
             <Route path="/dashboard" element={<Dashboard darkMode={darkMode} />} />
             <Route path="/profile" element={<Profile darkMode={darkMode} />} />
             <Route path="/users/:id" element={<PublicProfile darkMode={darkMode} />} />
+            <Route path="/wishlist" element={<Wishlist darkMode={darkMode} />} />
           </Routes>
         </div>
       </Router>
