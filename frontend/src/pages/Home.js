@@ -12,6 +12,8 @@ const Home = ({ darkMode }) => {
   const [total, setTotal] = useState(0);
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
   const searchRef = useRef(null);
 
   const bg = darkMode ? '#111827' : '#f9fafb';
@@ -40,6 +42,8 @@ const Home = ({ darkMode }) => {
       const params = { page, limit: 6 };
       if (category) params.category = category;
       if (search) params.city = search;
+      if (minPrice) params.minPrice = minPrice;
+      if (maxPrice) params.maxPrice = maxPrice;
       const { data } = await API.get('/items', { params });
       setItems(data.items);
       setTotalPages(data.totalPages);
@@ -86,6 +90,18 @@ const Home = ({ darkMode }) => {
     setPage(1);
   };
 
+  const handlePriceFilter = () => {
+    setPage(1);
+    fetchItems();
+  };
+
+  const clearPriceFilter = () => {
+    setMinPrice('');
+    setMaxPrice('');
+    setPage(1);
+    setTimeout(fetchItems, 0);
+  };
+
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1rem', background: bg, minHeight: '100vh' }}>
       <div style={{ background: 'linear-gradient(135deg, #2563eb, #7c3aed)', color: '#fff', borderRadius: '16px', padding: '3rem 2rem', textAlign: 'center', margin: '2rem 0' }}>
@@ -104,13 +120,10 @@ const Home = ({ darkMode }) => {
             {showSuggestions && suggestions.length > 0 && (
               <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', borderRadius: '8px', boxShadow: '0 4px 20px rgba(0,0,0,0.15)', zIndex: 100, marginTop: '4px', overflow: 'hidden' }}>
                 {suggestions.map((s, i) => (
-                  <div
-                    key={i}
-                    onClick={() => handleSuggestionClick(s)}
+                  <div key={i} onClick={() => handleSuggestionClick(s)}
                     style={{ padding: '0.75rem 1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.75rem', borderBottom: '1px solid #f3f4f6', background: '#fff', color: '#111' }}
                     onMouseEnter={e => e.currentTarget.style.background = '#f3f4f6'}
-                    onMouseLeave={e => e.currentTarget.style.background = '#fff'}
-                  >
+                    onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
                     {s.image && <img src={s.image} alt={s.title} style={{ width: '40px', height: '40px', borderRadius: '6px', objectFit: 'cover' }} />}
                     <div>
                       <p style={{ margin: 0, fontWeight: '500', fontSize: '0.9rem' }}>{s.title}</p>
@@ -125,6 +138,7 @@ const Home = ({ darkMode }) => {
         </form>
       </div>
 
+      {/* Category Filter */}
       <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', margin: '1rem 0' }}>
         {['', 'bikes', 'gadgets', 'tools', 'furniture', 'sports', 'vehicles', 'other'].map((cat) => (
           <button key={cat} onClick={() => handleCategory(cat)}
@@ -134,12 +148,26 @@ const Home = ({ darkMode }) => {
         ))}
       </div>
 
+      {/* Price Range Filter using Binary Search */}
+      <div style={{ background: card, padding: '1rem 1.25rem', borderRadius: '12px', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+        <span style={{ fontWeight: '600', color: text, fontSize: '0.9rem' }}>Price Filter (Binary Search):</span>
+        <input type="number" placeholder="Min Rs." value={minPrice} onChange={(e) => setMinPrice(e.target.value)}
+          style={{ padding: '0.5rem 0.75rem', borderRadius: '8px', border: `1px solid ${border}`, background: darkMode ? '#374151' : '#fff', color: text, width: '110px' }} />
+        <span style={{ color: subText }}>to</span>
+        <input type="number" placeholder="Max Rs." value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)}
+          style={{ padding: '0.5rem 0.75rem', borderRadius: '8px', border: `1px solid ${border}`, background: darkMode ? '#374151' : '#fff', color: text, width: '110px' }} />
+        <button onClick={handlePriceFilter} style={{ padding: '0.5rem 1rem', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '500' }}>Apply</button>
+        {(minPrice || maxPrice) && (
+          <button onClick={clearPriceFilter} style={{ padding: '0.5rem 1rem', background: '#fee2e2', color: '#991b1b', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '500' }}>Clear</button>
+        )}
+      </div>
+
       {total > 0 && <p style={{ color: subText, margin: '0.5rem 0' }}>Showing {items.length} of {total} items</p>}
 
       {loading ? (
         <p style={{ textAlign: 'center', padding: '3rem', color: subText }}>Loading items...</p>
       ) : items.length === 0 ? (
-        <p style={{ textAlign: 'center', padding: '3rem', color: subText }}>No items found. Be the first to list one!</p>
+        <p style={{ textAlign: 'center', padding: '3rem', color: subText }}>No items found in this price range!</p>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem', margin: '1rem 0' }}>
           {items.map((item) => (

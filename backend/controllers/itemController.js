@@ -1,4 +1,5 @@
 const Item = require('../models/Item');
+const { filterByPriceRange } = require('../utils/binarySearch');
 
 const getAllItems = async (req, res) => {
   try {
@@ -6,21 +7,22 @@ const getAllItems = async (req, res) => {
     let query = {};
     if (category) query.category = category;
     if (city) query['location.city'] = new RegExp(city, 'i');
-    if (minPrice || maxPrice) {
-      query.pricePerDay = {};
-      if (minPrice) query.pricePerDay.$gte = Number(minPrice);
-      if (maxPrice) query.pricePerDay.$lte = Number(maxPrice);
-    }
     if (search) query.$text = { $search: search };
 
-    const total = await Item.countDocuments(query);
-    const totalPages = Math.ceil(total / limit);
-    const items = await Item.find(query)
-      .populate('owner', 'name email phone avatar')
-      .skip((page - 1) * limit)
-      .limit(Number(limit));
+    let items = await Item.find(query).populate('owner', 'name email phone avatar');
 
-    res.json({ success: true, count: items.length, total, totalPages, currentPage: Number(page), items });
+    // Use Binary Search for price filtering if price range is specified
+    if (minPrice || maxPrice) {
+      const min = Number(minPrice) || 0;
+      const max = Number(maxPrice) || Infinity;
+      items = filterByPriceRange(items, min, max);
+    }
+
+    const total = items.length;
+    const totalPages = Math.ceil(total / limit);
+    const paginatedItems = items.slice((page - 1) * limit, page * limit);
+
+    res.json({ success: true, count: paginatedItems.length, total, totalPages, currentPage: Number(page), items: paginatedItems });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
