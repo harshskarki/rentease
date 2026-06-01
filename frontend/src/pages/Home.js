@@ -71,7 +71,7 @@ const Home = ({ darkMode }) => {
   const handleSuggestionClick = (suggestion) => {
     setSearch(suggestion.title);
     setShowSuggestions(false);
-    fetchItems();
+    window.location.href = `/items/${suggestion.id}`;
   };
 
   const handleSearch = (e) => {
