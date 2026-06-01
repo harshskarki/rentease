@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import API from '../services/api';
 
@@ -10,10 +10,29 @@ const Home = ({ darkMode }) => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchRef = useRef(null);
+
+  const bg = darkMode ? '#111827' : '#f9fafb';
+  const card = darkMode ? '#1f2937' : '#fff';
+  const text = darkMode ? '#f9fafb' : '#111827';
+  const subText = darkMode ? '#9ca3af' : '#6b7280';
+  const border = darkMode ? '#374151' : '#d1d5db';
 
   useEffect(() => {
     fetchItems();
   }, [category, page]);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (searchRef.current && !searchRef.current.contains(e.target)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const fetchItems = async () => {
     try {
@@ -32,9 +51,33 @@ const Home = ({ darkMode }) => {
     }
   };
 
+  const handleSearchChange = async (e) => {
+    const value = e.target.value;
+    setSearch(value);
+    if (value.length >= 1) {
+      try {
+        const { data } = await API.get(`/search/autocomplete?q=${value}`);
+        setSuggestions(data.suggestions);
+        setShowSuggestions(true);
+      } catch (err) {
+        setSuggestions([]);
+      }
+    } else {
+      setSuggestions([]);
+      setShowSuggestions(false);
+    }
+  };
+
+  const handleSuggestionClick = (suggestion) => {
+    setSearch(suggestion.title);
+    setShowSuggestions(false);
+    fetchItems();
+  };
+
   const handleSearch = (e) => {
     e.preventDefault();
     setPage(1);
+    setShowSuggestions(false);
     fetchItems();
   };
 
@@ -43,19 +86,41 @@ const Home = ({ darkMode }) => {
     setPage(1);
   };
 
-  const bg = darkMode ? '#111827' : '#f9fafb';
-  const card = darkMode ? '#1f2937' : '#fff';
-  const text = darkMode ? '#f9fafb' : '#111827';
-  const subText = darkMode ? '#9ca3af' : '#6b7280';
-  const border = darkMode ? '#374151' : '#d1d5db';
-
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1rem', background: bg, minHeight: '100vh' }}>
       <div style={{ background: 'linear-gradient(135deg, #2563eb, #7c3aed)', color: '#fff', borderRadius: '16px', padding: '3rem 2rem', textAlign: 'center', margin: '2rem 0' }}>
         <h1 style={{ fontSize: '2.5rem', fontWeight: 'bold', margin: '0 0 0.5rem' }}>Rent Anything, Anytime</h1>
         <p style={{ fontSize: '1.1rem', opacity: 0.9, margin: '0 0 1.5rem' }}>Find bikes, gadgets, tools and more near you</p>
-        <form onSubmit={handleSearch} style={{ display: 'flex', maxWidth: '500px', margin: '0 auto', gap: '0.5rem' }}>
-          <input type="text" placeholder="Search by city..." value={search} onChange={(e) => setSearch(e.target.value)} style={{ flex: 1, padding: '0.75rem 1rem', borderRadius: '8px', border: 'none', fontSize: '1rem' }} />
+        <form onSubmit={handleSearch} style={{ display: 'flex', maxWidth: '500px', margin: '0 auto', gap: '0.5rem', position: 'relative' }} ref={searchRef}>
+          <div style={{ flex: 1, position: 'relative' }}>
+            <input
+              type="text"
+              placeholder="Search items, cities, categories..."
+              value={search}
+              onChange={handleSearchChange}
+              onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+              style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '8px', border: 'none', fontSize: '1rem', boxSizing: 'border-box' }}
+            />
+            {showSuggestions && suggestions.length > 0 && (
+              <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', borderRadius: '8px', boxShadow: '0 4px 20px rgba(0,0,0,0.15)', zIndex: 100, marginTop: '4px', overflow: 'hidden' }}>
+                {suggestions.map((s, i) => (
+                  <div
+                    key={i}
+                    onClick={() => handleSuggestionClick(s)}
+                    style={{ padding: '0.75rem 1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.75rem', borderBottom: '1px solid #f3f4f6', background: '#fff', color: '#111' }}
+                    onMouseEnter={e => e.currentTarget.style.background = '#f3f4f6'}
+                    onMouseLeave={e => e.currentTarget.style.background = '#fff'}
+                  >
+                    {s.image && <img src={s.image} alt={s.title} style={{ width: '40px', height: '40px', borderRadius: '6px', objectFit: 'cover' }} />}
+                    <div>
+                      <p style={{ margin: 0, fontWeight: '500', fontSize: '0.9rem' }}>{s.title}</p>
+                      <p style={{ margin: 0, fontSize: '0.75rem', color: '#6b7280' }}>{s.city} - Rs.{s.pricePerDay}/day</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
           <button type="submit" style={{ padding: '0.75rem 1.5rem', background: '#f59e0b', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>Search</button>
         </form>
       </div>
@@ -95,27 +160,18 @@ const Home = ({ darkMode }) => {
 
       {totalPages > 1 && (
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', margin: '2rem 0 3rem' }}>
-          <button
-            onClick={() => setPage(p => Math.max(1, p - 1))}
-            disabled={page === 1}
-            style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: `1px solid ${border}`, background: card, color: text, cursor: page === 1 ? 'not-allowed' : 'pointer', opacity: page === 1 ? 0.5 : 1 }}
-          >
+          <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
+            style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: `1px solid ${border}`, background: card, color: text, cursor: page === 1 ? 'not-allowed' : 'pointer', opacity: page === 1 ? 0.5 : 1 }}>
             Previous
           </button>
           {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-            <button
-              key={p}
-              onClick={() => setPage(p)}
-              style={{ padding: '0.5rem 0.75rem', borderRadius: '8px', border: `1px solid ${p === page ? '#2563eb' : border}`, background: p === page ? '#2563eb' : card, color: p === page ? '#fff' : text, cursor: 'pointer', fontWeight: p === page ? 'bold' : 'normal' }}
-            >
+            <button key={p} onClick={() => setPage(p)}
+              style={{ padding: '0.5rem 0.75rem', borderRadius: '8px', border: `1px solid ${p === page ? '#2563eb' : border}`, background: p === page ? '#2563eb' : card, color: p === page ? '#fff' : text, cursor: 'pointer', fontWeight: p === page ? 'bold' : 'normal' }}>
               {p}
             </button>
           ))}
-          <button
-            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
-            style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: `1px solid ${border}`, background: card, color: text, cursor: page === totalPages ? 'not-allowed' : 'pointer', opacity: page === totalPages ? 0.5 : 1 }}
-          >
+          <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
+            style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: `1px solid ${border}`, background: card, color: text, cursor: page === totalPages ? 'not-allowed' : 'pointer', opacity: page === totalPages ? 0.5 : 1 }}>
             Next
           </button>
         </div>
