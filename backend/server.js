@@ -14,13 +14,14 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use('/api/auth',      require('./routes/authRoutes'));
-app.use('/api/items',     require('./routes/itemRoutes'));
-app.use('/api/bookings',  require('./routes/bookingRoutes'));
-app.use('/api/users',     require('./routes/userRoutes'));
-app.use('/api/payments',  require('./routes/paymentRoutes'));
-app.use('/api/wishlist',  require('./routes/wishlistRoutes'));
-app.use('/api/search',    require('./routes/searchRoutes'));
+app.use('/api/auth',            require('./routes/authRoutes'));
+app.use('/api/items',           require('./routes/itemRoutes'));
+app.use('/api/bookings',        require('./routes/bookingRoutes'));
+app.use('/api/users',           require('./routes/userRoutes'));
+app.use('/api/payments',        require('./routes/paymentRoutes'));
+app.use('/api/wishlist',        require('./routes/wishlistRoutes'));
+app.use('/api/search',          require('./routes/searchRoutes'));
+app.use('/api/recommendations', require('./routes/recommendationRoutes'));
 
 app.get('/', (req, res) => res.json({ message: 'RentEase API running' }));
 
