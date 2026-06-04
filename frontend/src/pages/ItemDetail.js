@@ -14,6 +14,7 @@ const ItemDetail = ({ darkMode }) => {
   const [endDate, setEndDate] = useState('');
   const [booking, setBooking] = useState(false);
   const [wishlisted, setWishlisted] = useState(false);
+  const [currentImage, setCurrentImage] = useState(0);
 
   const bg = darkMode ? '#111827' : '#f9fafb';
   const card = darkMode ? '#1f2937' : '#fff';
@@ -71,19 +72,58 @@ const ItemDetail = ({ darkMode }) => {
     }
   };
 
+  const prevImage = () => setCurrentImage(i => (i === 0 ? item.images.length - 1 : i - 1));
+  const nextImage = () => setCurrentImage(i => (i === item.images.length - 1 ? 0 : i + 1));
+
   if (loading) return <p style={{ textAlign: 'center', padding: '3rem', color: subText }}>Loading...</p>;
   if (!item) return null;
+
+  const images = item.images.length > 0 ? item.images : [];
 
   return (
     <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '2rem 1rem', background: bg, minHeight: '100vh' }}>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '2rem' }}>
         <div>
-          <div style={{ height: '350px', background: darkMode ? '#374151' : '#f3f4f6', borderRadius: '12px', overflow: 'hidden', marginBottom: '1.5rem' }}>
-            {item.images[0] ? <img src={item.images[0]} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: subText, fontSize: '1.2rem' }}>No Image</div>}
+
+          {/* Image Carousel */}
+          <div style={{ position: 'relative', height: '400px', background: darkMode ? '#374151' : '#f3f4f6', borderRadius: '16px', overflow: 'hidden', marginBottom: '1rem' }}>
+            {images.length > 0 ? (
+              <>
+                <img src={images[currentImage]} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'opacity 0.3s ease' }} />
+                {images.length > 1 && (
+                  <>
+                    <button onClick={prevImage} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.5)', color: '#fff', border: 'none', borderRadius: '50%', width: '40px', height: '40px', fontSize: '1.2rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>&#8249;</button>
+                    <button onClick={nextImage} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.5)', color: '#fff', border: 'none', borderRadius: '50%', width: '40px', height: '40px', fontSize: '1.2rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>&#8250;</button>
+                    <div style={{ position: 'absolute', bottom: '12px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '6px' }}>
+                      {images.map((_, i) => (
+                        <div key={i} onClick={() => setCurrentImage(i)}
+                          style={{ width: '8px', height: '8px', borderRadius: '50%', background: i === currentImage ? '#fff' : 'rgba(255,255,255,0.5)', cursor: 'pointer', transition: 'background 0.3s' }} />
+                      ))}
+                    </div>
+                    <div style={{ position: 'absolute', top: '12px', right: '12px', background: 'rgba(0,0,0,0.5)', color: '#fff', padding: '0.25rem 0.6rem', borderRadius: '20px', fontSize: '0.8rem' }}>
+                      {currentImage + 1} / {images.length}
+                    </div>
+                  </>
+                )}
+              </>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: subText, fontSize: '1.2rem' }}>No Image</div>
+            )}
           </div>
+
+          {/* Thumbnail Strip */}
+          {images.length > 1 && (
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', overflowX: 'auto', paddingBottom: '0.25rem' }}>
+              {images.map((img, i) => (
+                <img key={i} src={img} alt={`thumbnail ${i}`} onClick={() => setCurrentImage(i)}
+                  style={{ width: '70px', height: '70px', objectFit: 'cover', borderRadius: '8px', cursor: 'pointer', border: i === currentImage ? '3px solid #2563eb' : '3px solid transparent', opacity: i === currentImage ? 1 : 0.6, transition: 'all 0.2s', flexShrink: 0 }} />
+              ))}
+            </div>
+          )}
+
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <h1 style={{ fontSize: '2rem', fontWeight: 'bold', margin: '0 0 0.5rem', color: text }}>{item.title}</h1>
-            <button onClick={handleWishlist} style={{ background: wishlisted ? '#fee2e2' : darkMode ? '#374151' : '#f3f4f6', border: 'none', padding: '0.5rem 1rem', borderRadius: '8px', cursor: 'pointer', fontSize: '1.2rem', color: wishlisted ? '#dc2626' : subText }}>
+            <button onClick={handleWishlist} style={{ background: wishlisted ? '#fee2e2' : darkMode ? '#374151' : '#f3f4f6', border: 'none', padding: '0.5rem 1rem', borderRadius: '8px', cursor: 'pointer', fontSize: '1rem', color: wishlisted ? '#dc2626' : subText }}>
               {wishlisted ? 'Saved' : 'Save'}
             </button>
           </div>
@@ -96,6 +136,7 @@ const ItemDetail = ({ darkMode }) => {
             <p style={{ color: subText, fontSize: '0.9rem', margin: 0 }}>{item.owner?.email}</p>
           </Link>
         </div>
+
         <div>
           <div style={{ background: card, padding: '1.5rem', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', position: 'sticky', top: '80px' }}>
             <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#2563eb', margin: '0 0 1.5rem' }}>Rs.{item.pricePerDay}<span style={{ fontSize: '1rem', color: subText, fontWeight: 'normal' }}>/day</span></p>
