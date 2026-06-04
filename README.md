@@ -1,142 +1,117 @@
 # 🚀 RentEase — Full Stack Rental Marketplace Platform
 
-A modern full-stack rental marketplace where users can list items for rent, discover products nearby, and manage bookings seamlessly.
+A modern full-stack rental marketplace where users can list items for rent, discover products nearby, and manage bookings seamlessly. Built with DSA algorithms integrated for performance optimization.
 
-# 🌐 Live Demo
-
-## 🔗 Project Links
+## 🌐 Live Demo
 
 [![Frontend](https://img.shields.io/badge/Frontend-Live-blue?style=for-the-badge&logo=vercel)](https://rentease-mocha-three.vercel.app/)
-
 [![Backend API](https://img.shields.io/badge/Backend-API-green?style=for-the-badge&logo=render)](https://rentease-backend-6clu.onrender.com/)
-
-
-## 📸 Preview
-
-✔ User Authentication
-
-✔ Create Rental Listings
-
-✔ Browse & Search Products
-
-✔ Booking Management
-
-✔ Owner Dashboard
-
-✔ Booking Approval System
-
-✔ JWT Protected Routes
-
-✔ Responsive UI
 
 ## ✨ Features
 
-🔐 Authentication System
+### 🔐 Authentication System
+- Secure Register/Login system
+- JWT-based authentication
+- Password hashing using Bcrypt
+- Protected routes & user sessions
+- Change password & delete account
 
-✔ Razorpay Payment Integration
+### 🏷️ Rental Listings
+- Add rental items with image uploads (Cloudinary)
+- Set pricing, category, city/location
+- Manage your own listings
+- Browse & search with autocomplete
 
-Secure Register/Login system
+### 🔍 Smart Search & Filtering
+- Trie-based autocomplete search
+- Filter by category
+- Binary Search price range filter
+- Priority Queue recommendation engine
 
-JWT-based authentication
+### 📅 Booking System
+- Select rental dates
+- Automatic total price calculation
+- Booking request workflow
+- Booking history tracking
 
-Password hashing using Bcrypt
+### 💳 Payments
+- Razorpay payment integration
+- Test mode support
+- Payment status tracking
 
-Protected routes & user sessions
+### 📧 Email Notifications
+- Booking request email to owner
+- Booking confirmation/rejection email to renter
+- Powered by Resend
 
-## 🏷️ Rental Listings
+### 👤 User Profiles
+- Edit profile with avatar upload
+- Public profile page
+- Stats — items listed, bookings made, rating
+- Member since date
 
-### Users can:
+### 📊 Dashboard
+- Renter Dashboard — view & track bookings
+- Owner Dashboard — confirm/reject booking requests
+- Manage listings
 
-Add rental items
+### ❤️ Wishlist
+- Save items for later
+- Remove from wishlist
+- Dedicated wishlist page
 
-Upload item details
+### 🎨 UI/UX
+- Dark mode toggle
+- Pagination
+- Responsive design
+- Toast notifications
 
-Set pricing
+## 🧠 DSA Implementations
 
-Choose category
+### 1. Trie — Autocomplete Search
+- Built Trie data structure from scratch
+- Each node stores references to matching items
+- O(m) search time where m = length of search prefix
+- Used for instant autocomplete suggestions in search box
 
-Add city/location
+### 2. Binary Search — Price Range Filter
+- Implemented lowerBound and upperBound binary search variants
+- Items sorted by price, binary search finds exact range
+- O(log n) time complexity vs O(n) linear scan
+- Used for efficient price range filtering on home page
 
-Manage their own listings
-
-## 🔍 Smart Search & Filtering
-
-Search by city
-
-Filter by category
-
-Browse available rental items
-
-Responsive product grid
-
-## 📅 Booking System
-
-Select rental dates
-
-Automatic total price calculation
-
-Booking request workflow
-
-Booking history tracking
-
-## 📊 User Dashboard
-
-Renter Dashboard
-
-View bookings
-
-Track booking status
-
-Manage rented items
-
-Owner Dashboard
-
-Accept booking requests
-
-Reject booking requests
-
-Manage listings
+### 3. Max Heap / Priority Queue — Recommendation Engine
+- Built Max Heap from scratch with bubbleUp and bubbleDown
+- Items scored by weighted formula: (reviews × 3) + (rating × 2) + bookings
+- Extracts top-K popular items in O(K log n) time
+- Used for "Popular Items" section on home page
 
 ## 🛠️ Tech Stack
 
-Frontend
+### Frontend
+- React.js
+- React Router DOM
+- Axios
+- React Hot Toast
+- React Icons
 
-React.js
+### Backend
+- Node.js
+- Express.js
+- MongoDB Atlas
+- Mongoose
+- JWT Authentication
+- Bcrypt.js
+- Razorpay
+- Resend (Email)
+- Cloudinary (Image Upload)
 
-React Router DOM
-
-Axios
-
-React Hot Toast
-
-React Icons
-
-CSS3
-
-Backend
-
-Node.js
-
-Express.js
-
-MongoDB Atlas
-
-Mongoose
-
-JWT Authentication
-
-Bcrypt.js
-
-Deployment
-
-Vercel (Frontend)
-
-Render (Backend)
-
-MongoDB Atlas (Database)
+### Deployment
+- Vercel (Frontend)
+- Render (Backend)
+- MongoDB Atlas (Database)
 
 ## 📂 Project Structure
-
 rentease/
 │
 ├── backend/
@@ -146,74 +121,45 @@ rentease/
 │   ├── models/
 │   ├── routes/
 │   ├── utils/
+│   │   ├── trie.js
+│   │   ├── binarySearch.js
+│   │   └── priorityQueue.js
 │   └── server.js
 │
 ├── frontend/
 │   └── src/
-│       ├── assets/
 │       ├── components/
 │       ├── context/
-│       ├── hooks/
 │       ├── pages/
-│       ├── services/
-│       └── utils/
+│       └── services/
 │
-├── README.md
-└── package.json
+└── README.md
 
 ## ⚙️ Installation & Setup
 
-### 📌 Prerequisites
+### Prerequisites
+- Node.js
+- npm
+- MongoDB Atlas Account
+- Git
 
-Make sure you have installed:
-
-Node.js
- 
-npm
-
-MongoDB Atlas Account
-
-Git
-
-### 🔧 Backend Setup
-
-#### Clone the repository
-
-git clone https://github.com/your-username/rentease.git
-
-#### Navigate to backend
-
+### Backend Setup
+```bash
+git clone https://github.com/harshskarki/rentease.git
 cd rentease/backend
-
-#### Install dependencies
-
 npm install
-
-#### Create environment file
-
 cp .env.example .env
-
-#### Start backend server
-
 npm run dev
+```
 
-### 🎨 Frontend Setup
-
-#### Navigate to frontend
-
+### Frontend Setup
+```bash
 cd ../frontend
-
-#### Install dependencies
-
 npm install
-
-#### Start frontend
-
 npm start
+```
 
-### 🔑 Environment Variables
-
-Create a .env file inside backend folder.
+### Environment Variables
 
 PORT=5000
 
@@ -221,134 +167,72 @@ MONGO_URI=your_mongodb_connection
 
 JWT_SECRET=your_secret_key
 
-### 🔗 API Endpoints
+CLOUDINARY_CLOUD_NAME=your_cloud_name
 
-#### Auth Routes
+CLOUDINARY_API_KEY=your_api_key
 
-POST /api/auth/register
+CLOUDINARY_API_SECRET=your_api_secret
 
-POST /api/auth/login
+RAZORPAY_KEY_ID=your_razorpay_key
 
-#### Listing Routes
+RAZORPAY_KEY_SECRET=your_razorpay_secret
 
-GET    /api/items
+RESEND_API_KEY=your_resend_key
 
-POST   /api/items
+CLIENT_URL=http://localhost:3000
 
-GET    /api/items/:id
+## 🔗 API Endpoints
 
-DELETE /api/items/:id
+### Auth Routes
+- POST /api/auth/register
+- POST /api/auth/login
+- GET /api/auth/me
 
-#### Booking Routes
+### Item Routes
+- GET /api/items
+- POST /api/items
+- GET /api/items/:id
+- PUT /api/items/:id
+- DELETE /api/items/:id
 
-POST /api/bookings
+### Booking Routes
+- POST /api/bookings
+- GET /api/bookings/my-bookings
+- GET /api/bookings/owner-bookings
+- PUT /api/bookings/:id/status
 
-GET  /api/bookings/user
-
-PUT  /api/bookings/:id/status
-
-## 🧠 Key Concepts Used
-
-REST API Architecture
-
-JWT Authentication
-
-Protected Routes
-
-CRUD Operations
-
-MongoDB Relationships
-
-State Management
-
-Responsive Design
-
-Full Stack Deployment
-
-## 🚀 Future Improvements
-
-📸 Image Upload with Cloudinary
-
-💳 Online Payments Integration
-
-⭐ Ratings & Reviews
-
-💬 Real-time Chat System
-
-🔔 Email Notifications
-
-📱 Progressive Web App (PWA)
-
-🗺️ Google Maps Integration
-
-❤️ Wishlist & Favorites
-
-## 🧪 Testing Ideas
-
-Authentication validation
-
-API route testing
-
-Booking overlap prevention
-
-Error handling
-
-Mobile responsiveness testing
+### DSA Routes
+- GET /api/search/autocomplete?q= (Trie)
+- GET /api/items?minPrice=&maxPrice= (Binary Search)
+- GET /api/recommendations (Priority Queue)
 
 ## 📈 Performance Optimizations
+- Trie for O(m) search
+- Binary Search for O(log n) price filtering
+- Priority Queue for O(K log n) recommendations
+- Pagination for efficient data loading
+- JWT session persistence
+- Cloudinary CDN for images
 
-Lazy loading components
+## 👨‍💻 Developer
+**Harshvardhan Singh Karki**
+B.Tech CSE — 4th Year Student
 
-Optimized API calls
-
-JWT session persistence
-
-Efficient MongoDB queries
-
-Reusable React components
-
-## 🤝 Contributing
-
-Contributions are welcome!
-
-### Fork repository
-### Create new branch
-git checkout -b feature-name
-
-### Commit changes
-git commit -m "Added new feature"
-
-### Push branch
-git push origin feature-name
-👨‍💻 Developer
-Harshvardhan Singh Karki
-
-B.Tech CSE Student
-
-Experince:
-
-Full Stack Development
-
-AI Applications
-
-Modern UI/UX
-
-Scalable Web Apps
+Skills:
+- Full Stack Development
+- DSA & Algorithms
+- AI Applications
+- Modern UI/UX
+- Scalable Web Apps
 
 ## ⭐ Support
-
 If you liked this project:
-
-⭐ Star the repository
-
-🍴 Fork the project
-
-🛠️ Contribute improvements
+- ⭐ Star the repository
+- 🍴 Fork the project
+- 🛠️ Contribute improvements
 
 ## 📜 License
-
 This project is licensed under the MIT License.
 
 ## 🏁 Final Note
-
-RentEase is built to simplify peer-to-peer rentals with a clean interface, secure authentication, and a scalable backend architecture. The project demonstrates full-stack development skills including API design, database management, authentication, deployment, and responsive frontend engineering.
+RentEase demonstrates full-stack development skills with real DSA implementations — Trie, Binary Search, and Max Heap — integrated into a production-ready application with payments, email notifications, image uploads, and deployment.
