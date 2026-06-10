@@ -150,8 +150,7 @@ const Dashboard = ({ darkMode }) => {
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   {[1, 2, 3, 4, 5].map(star => (
                     <button key={star} type="button" onClick={() => setReviewForm({ ...reviewForm, rating: star })}
-                      style={{ fontSize: '1.5rem', background: 'none', border: 'none', cursor: 'pointer', color: star <= reviewForm.rating ? '#f59e0b' : '#d1d5db' }}>
-                      ?
+                      style={{ padding: '0.4rem 0.8rem', borderRadius: '6px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: star <= reviewForm.rating ? '#f59e0b' : '#e5e7eb', color: star <= reviewForm.rating ? '#fff' : '#374151' }}>{star}
                     </button>
                   ))}
                 </div>
@@ -278,4 +277,5 @@ const Dashboard = ({ darkMode }) => {
 };
 
 export default Dashboard;
+
 
