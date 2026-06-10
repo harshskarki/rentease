@@ -98,7 +98,7 @@ const ItemDetail = ({ darkMode }) => {
 
   const renderStars = (rating) => {
   return [1,2,3,4,5].map(star => (
-    <span key={star} style={{ color: star <= rating ? '#f59e0b' : '#d1d5db', fontSize: '1.1rem' }}>{star <= rating ? '[*]' : '[ ]'}</span>
+    <span key={star} style={{ color: star <= rating ? '#f59e0b' : '#d1d5db', fontSize: '1.1rem' }}>{star <= rating ? star : '.'}</span>
   ));
 };
 
