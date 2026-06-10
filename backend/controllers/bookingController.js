@@ -103,7 +103,7 @@ const updateBookingStatus = async (req, res) => {
     const { status } = req.body;
     const booking = await Booking.findById(req.params.id).populate('item renter');
     if (!booking) return res.status(404).json({ success: false, message: 'Booking not found' });
-    if (booking.owner.toString() !== req.user._id.toString()) {
+    if (booking.owner.toString() !== req.user._id.toString() && booking.renter.toString() !== req.user._id.toString()) {
       return res.status(403).json({ success: false, message: 'Not authorized' });
     }
     booking.status = status;
