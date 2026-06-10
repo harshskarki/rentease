@@ -16,6 +16,7 @@ const ItemDetail = ({ darkMode }) => {
   const [wishlisted, setWishlisted] = useState(false);
   const [currentImage, setCurrentImage] = useState(0);
   const [bookedDates, setBookedDates] = useState([]);
+  const [reviews, setReviews] = useState([]);
 
   const bg = darkMode ? '#111827' : '#f9fafb';
   const card = darkMode ? '#1f2937' : '#fff';
@@ -26,10 +27,14 @@ const ItemDetail = ({ darkMode }) => {
   useEffect(() => {
     const fetchItem = async () => {
       try {
-        const { data } = await API.get(`/items/${id}`);
-        setItem(data.item);
-        const datesRes = await API.get(`/bookings/booked-dates/${id}`);
+        const [itemRes, datesRes, reviewsRes] = await Promise.all([
+          API.get(`/items/${id}`),
+          API.get(`/bookings/booked-dates/${id}`),
+          API.get(`/reviews/${id}`),
+        ]);
+        setItem(itemRes.data.item);
         setBookedDates(datesRes.data.bookedDates);
+        setReviews(reviewsRes.data.reviews);
         if (user) {
           const wishlistRes = await API.get('/wishlist');
           const isWishlisted = wishlistRes.data.wishlist.some(w => w._id === id);
@@ -91,6 +96,12 @@ const ItemDetail = ({ darkMode }) => {
   const prevImage = () => setCurrentImage(i => (i === 0 ? item.images.length - 1 : i - 1));
   const nextImage = () => setCurrentImage(i => (i === item.images.length - 1 ? 0 : i + 1));
 
+  const renderStars = (rating) => {
+    return [1,2,3,4,5].map(star => (
+      <span key={star} style={{ color: star <= rating ? '#f59e0b' : '#d1d5db', fontSize: '1.1rem' }}>?</span>
+    ));
+  };
+
   if (loading) return <p style={{ textAlign: 'center', padding: '3rem', color: subText }}>Loading...</p>;
   if (!item) return null;
 
@@ -142,7 +153,14 @@ const ItemDetail = ({ darkMode }) => {
               {wishlisted ? 'Saved' : 'Save'}
             </button>
           </div>
-          <span style={{ background: '#ede9fe', color: '#7c3aed', padding: '0.3rem 0.8rem', borderRadius: '20px', fontSize: '0.85rem' }}>{item.category}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0.5rem 0' }}>
+            <span style={{ background: '#ede9fe', color: '#7c3aed', padding: '0.3rem 0.8rem', borderRadius: '20px', fontSize: '0.85rem' }}>{item.category}</span>
+            {item.numReviews > 0 && (
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: subText, fontSize: '0.9rem' }}>
+                {renderStars(item.rating)} <span>({item.numReviews} reviews)</span>
+              </span>
+            )}
+          </div>
           <p style={{ color: subText, margin: '0.75rem 0' }}>Location: {item.location.city}, {item.location.state}</p>
           <p style={{ color: text, lineHeight: 1.7, margin: '1rem 0' }}>{item.description}</p>
 
@@ -163,6 +181,36 @@ const ItemDetail = ({ darkMode }) => {
             <p style={{ fontWeight: 'bold', margin: '0 0 0.2rem', color: text }}>{item.owner?.name}</p>
             <p style={{ color: subText, fontSize: '0.9rem', margin: 0 }}>{item.owner?.email}</p>
           </Link>
+
+          {/* Reviews Section */}
+          <div style={{ marginTop: '2rem' }}>
+            <h3 style={{ color: text, margin: '0 0 1rem', fontSize: '1.3rem' }}>Reviews {reviews.length > 0 && `(${reviews.length})`}</h3>
+            {reviews.length === 0 ? (
+              <p style={{ color: subText }}>No reviews yet. Be the first to review!</p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {reviews.map(review => (
+                  <div key={review._id} style={{ background: card, padding: '1rem', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                      {review.user?.avatar ? (
+                        <img src={review.user.avatar} alt={review.user.name} style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover' }} />
+                      ) : (
+                        <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 'bold', fontSize: '0.9rem' }}>
+                          {review.user?.name?.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      <div>
+                        <p style={{ fontWeight: '600', margin: 0, color: text }}>{review.user?.name}</p>
+                        <div style={{ display: 'flex', gap: '2px' }}>{renderStars(review.rating)}</div>
+                      </div>
+                      <p style={{ color: subText, fontSize: '0.8rem', marginLeft: 'auto' }}>{new Date(review.createdAt).toLocaleDateString()}</p>
+                    </div>
+                    <p style={{ color: text, margin: 0, lineHeight: 1.6 }}>{review.comment}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <div>
