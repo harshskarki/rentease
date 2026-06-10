@@ -103,9 +103,22 @@ const updateBookingStatus = async (req, res) => {
     const { status } = req.body;
     const booking = await Booking.findById(req.params.id).populate('item renter');
     if (!booking) return res.status(404).json({ success: false, message: 'Booking not found' });
-    if (booking.owner.toString() !== req.user._id.toString() && booking.renter.toString() !== req.user._id.toString()) {
+    
+    const isOwner = booking.owner.toString() === req.user._id.toString();
+    const isRenter = booking.renter._id.toString() === req.user._id.toString();
+    
+    if (!isOwner && !isRenter) {
       return res.status(403).json({ success: false, message: 'Not authorized' });
     }
+    
+    // Only owner can confirm/cancel, only renter can mark completed
+    if (status === 'completed' && !isRenter) {
+      return res.status(403).json({ success: false, message: 'Only renter can mark as completed' });
+    }
+    if ((status === 'confirmed' || status === 'cancelled') && !isOwner) {
+      return res.status(403).json({ success: false, message: 'Only owner can confirm or cancel' });
+    }
+
     booking.status = status;
     await booking.save();
     try {
