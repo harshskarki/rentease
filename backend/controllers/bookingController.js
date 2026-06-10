@@ -3,6 +3,19 @@ const Item = require('../models/Item');
 const User = require('../models/User');
 const { sendBookingConfirmationToOwner, sendBookingStatusToRenter } = require('../utils/emailService');
 
+const checkDateConflict = async (itemId, startDate, endDate, excludeBookingId = null) => {
+  const query = {
+    item: itemId,
+    status: { $in: ['pending', 'confirmed', 'active'] },
+    $or: [
+      { startDate: { $lte: endDate }, endDate: { $gte: startDate } },
+    ],
+  };
+  if (excludeBookingId) query._id = { $ne: excludeBookingId };
+  const conflict = await Booking.findOne(query);
+  return conflict;
+};
+
 const createBooking = async (req, res) => {
   try {
     const { itemId, startDate, endDate, notes } = req.body;
@@ -16,6 +29,16 @@ const createBooking = async (req, res) => {
     const end = new Date(endDate);
     const totalDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
     if (totalDays < 1) return res.status(400).json({ success: false, message: 'Invalid dates' });
+
+    // Check for booking conflicts
+    const conflict = await checkDateConflict(itemId, start, end);
+    if (conflict) {
+      return res.status(400).json({
+        success: false,
+        message: `Item is already booked from ${new Date(conflict.startDate).toLocaleDateString()} to ${new Date(conflict.endDate).toLocaleDateString()}. Please choose different dates.`
+      });
+    }
+
     const totalAmount = totalDays * item.pricePerDay;
     const booking = await Booking.create({
       item: itemId,
@@ -115,4 +138,17 @@ const cancelBooking = async (req, res) => {
   }
 };
 
-module.exports = { createBooking, getMyBookings, getOwnerBookings, getBookingById, updateBookingStatus, cancelBooking };
+const getBookedDates = async (req, res) => {
+  try {
+    const { itemId } = req.params;
+    const bookings = await Booking.find({
+      item: itemId,
+      status: { $in: ['pending', 'confirmed', 'active'] },
+    }).select('startDate endDate');
+    res.json({ success: true, bookedDates: bookings });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+module.exports = { createBooking, getMyBookings, getOwnerBookings, getBookingById, updateBookingStatus, cancelBooking, getBookedDates };

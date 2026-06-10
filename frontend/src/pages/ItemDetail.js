@@ -15,6 +15,7 @@ const ItemDetail = ({ darkMode }) => {
   const [booking, setBooking] = useState(false);
   const [wishlisted, setWishlisted] = useState(false);
   const [currentImage, setCurrentImage] = useState(0);
+  const [bookedDates, setBookedDates] = useState([]);
 
   const bg = darkMode ? '#111827' : '#f9fafb';
   const card = darkMode ? '#1f2937' : '#fff';
@@ -27,6 +28,8 @@ const ItemDetail = ({ darkMode }) => {
       try {
         const { data } = await API.get(`/items/${id}`);
         setItem(data.item);
+        const datesRes = await API.get(`/bookings/booked-dates/${id}`);
+        setBookedDates(datesRes.data.bookedDates);
         if (user) {
           const wishlistRes = await API.get('/wishlist');
           const isWishlisted = wishlistRes.data.wishlist.some(w => w._id === id);
@@ -41,6 +44,15 @@ const ItemDetail = ({ darkMode }) => {
     };
     fetchItem();
   }, [id, navigate, user]);
+
+  const isDateBooked = (date) => {
+    return bookedDates.some(b => {
+      const start = new Date(b.startDate);
+      const end = new Date(b.endDate);
+      const check = new Date(date);
+      return check >= start && check <= end;
+    });
+  };
 
   const totalDays = startDate && endDate
     ? Math.ceil((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24))
@@ -60,6 +72,10 @@ const ItemDetail = ({ darkMode }) => {
   const handleBooking = async (e) => {
     e.preventDefault();
     if (!user) { toast.error('Please login to book'); navigate('/login'); return; }
+    if (isDateBooked(startDate) || isDateBooked(endDate)) {
+      toast.error('Selected dates overlap with an existing booking!');
+      return;
+    }
     setBooking(true);
     try {
       await API.post('/bookings', { itemId: id, startDate, endDate });
@@ -84,7 +100,6 @@ const ItemDetail = ({ darkMode }) => {
     <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '2rem 1rem', background: bg, minHeight: '100vh' }}>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '2rem' }}>
         <div>
-
           {/* Image Carousel */}
           <div style={{ position: 'relative', height: '400px', background: darkMode ? '#374151' : '#f3f4f6', borderRadius: '16px', overflow: 'hidden', marginBottom: '1rem' }}>
             {images.length > 0 ? (
@@ -130,6 +145,19 @@ const ItemDetail = ({ darkMode }) => {
           <span style={{ background: '#ede9fe', color: '#7c3aed', padding: '0.3rem 0.8rem', borderRadius: '20px', fontSize: '0.85rem' }}>{item.category}</span>
           <p style={{ color: subText, margin: '0.75rem 0' }}>Location: {item.location.city}, {item.location.state}</p>
           <p style={{ color: text, lineHeight: 1.7, margin: '1rem 0' }}>{item.description}</p>
+
+          {/* Booked Dates */}
+          {bookedDates.length > 0 && (
+            <div style={{ background: darkMode ? '#374151' : '#fef3c7', padding: '1rem', borderRadius: '10px', marginBottom: '1rem' }}>
+              <p style={{ fontWeight: '600', color: '#92400e', margin: '0 0 0.5rem' }}>Already Booked Dates:</p>
+              {bookedDates.map((b, i) => (
+                <p key={i} style={{ color: '#92400e', margin: '0.2rem 0', fontSize: '0.9rem' }}>
+                  {new Date(b.startDate).toLocaleDateString()} - {new Date(b.endDate).toLocaleDateString()}
+                </p>
+              ))}
+            </div>
+          )}
+
           <Link to={`/users/${item.owner?._id}`} style={{ display: 'block', background: darkMode ? '#374151' : '#f9fafb', padding: '1rem', borderRadius: '10px', marginTop: '1rem', textDecoration: 'none' }}>
             <p style={{ color: subText, fontSize: '0.8rem', margin: '0 0 0.25rem' }}>Listed by</p>
             <p style={{ fontWeight: 'bold', margin: '0 0 0.2rem', color: text }}>{item.owner?.name}</p>
