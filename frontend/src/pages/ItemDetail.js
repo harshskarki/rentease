@@ -97,10 +97,10 @@ const ItemDetail = ({ darkMode }) => {
   const nextImage = () => setCurrentImage(i => (i === item.images.length - 1 ? 0 : i + 1));
 
   const renderStars = (rating) => {
-    return [1,2,3,4,5].map(star => (
-      <span key={star} style={{ color: star <= rating ? '#f59e0b' : '#d1d5db', fontSize: '1.1rem' }}>?</span>
-    ));
-  };
+  return [1,2,3,4,5].map(star => (
+    <span key={star} style={{ color: star <= rating ? '#f59e0b' : '#d1d5db', fontSize: '1.1rem' }}>{star <= rating ? '[*]' : '[ ]'}</span>
+  ));
+};
 
   if (loading) return <p style={{ textAlign: 'center', padding: '3rem', color: subText }}>Loading...</p>;
   if (!item) return null;
