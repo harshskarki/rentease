@@ -12,6 +12,7 @@ import Profile from './pages/Profile';
 import PublicProfile from './pages/PublicProfile';
 import Wishlist from './pages/Wishlist';
 import Navbar from './components/Navbar';
+import './index.css';
 
 function App() {
   const [darkMode, setDarkMode] = useState(() => {

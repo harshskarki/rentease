@@ -111,7 +111,7 @@ const ItemDetail = ({ darkMode }) => {
 
   return (
     <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '2rem 1rem', background: bg, minHeight: '100vh' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '2rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: '2rem' }}>
         <div>
           {/* Image Carousel */}
           <div style={{ position: 'relative', height: '400px', background: darkMode ? '#374151' : '#f3f4f6', borderRadius: '16px', overflow: 'hidden', marginBottom: '1rem' }}>
