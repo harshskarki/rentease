@@ -2,6 +2,26 @@ const { Resend } = require('resend');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+const sendOTPEmail = async (email, name, otp) => {
+  await resend.emails.send({
+    from: 'RentEase <onboarding@resend.dev>',
+    to: email,
+    subject: 'Verify Your Email - RentEase',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #2563eb;">Verify Your Email</h2>
+        <p>Hi ${name},</p>
+        <p>Welcome to RentEase! Please use the OTP below to verify your email address:</p>
+        <div style="background: #f3f4f6; padding: 1.5rem; border-radius: 8px; margin: 1.5rem 0; text-align: center;">
+          <p style="font-size: 2rem; font-weight: bold; color: #2563eb; margin: 0; letter-spacing: 8px;">${otp}</p>
+        </div>
+        <p>This OTP will expire in 10 minutes.</p>
+        <p style="margin-top: 2rem; color: #6b7280;">RentEase Team</p>
+      </div>
+    `,
+  });
+};
+
 const sendBookingConfirmationToOwner = async (ownerEmail, ownerName, renterName, itemTitle, startDate, endDate, totalAmount) => {
   await resend.emails.send({
     from: 'RentEase <onboarding@resend.dev>',
@@ -51,4 +71,4 @@ const sendBookingStatusToRenter = async (renterEmail, renterName, itemTitle, sta
   });
 };
 
-module.exports = { sendBookingConfirmationToOwner, sendBookingStatusToRenter };
+module.exports = { sendOTPEmail, sendBookingConfirmationToOwner, sendBookingStatusToRenter };

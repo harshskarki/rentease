@@ -11,6 +11,7 @@ import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import PublicProfile from './pages/PublicProfile';
 import Wishlist from './pages/Wishlist';
+import VerifyOTP from './pages/VerifyOTP';
 import Navbar from './components/Navbar';
 import './index.css';
 
@@ -35,6 +36,7 @@ function App() {
             <Route path="/" element={<Home darkMode={darkMode} />} />
             <Route path="/login" element={<Login darkMode={darkMode} />} />
             <Route path="/register" element={<Register darkMode={darkMode} />} />
+            <Route path="/verify-otp" element={<VerifyOTP darkMode={darkMode} />} />
             <Route path="/items/:id" element={<ItemDetail darkMode={darkMode} />} />
             <Route path="/create-item" element={<CreateItem darkMode={darkMode} />} />
             <Route path="/dashboard" element={<Dashboard darkMode={darkMode} />} />

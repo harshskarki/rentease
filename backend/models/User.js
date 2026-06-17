@@ -30,6 +30,9 @@ const userSchema = new mongoose.Schema({
   rating: { type: Number, default: 0 },
   numReviews: { type: Number, default: 0 },
   wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Item' }],
+  isVerified: { type: Boolean, default: false },
+  otp: { type: String, select: false },
+  otpExpires: { type: Date, select: false },
 }, { timestamps: true });
 
 userSchema.pre('save', async function (next) {
