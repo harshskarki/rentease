@@ -3,7 +3,7 @@ const { Resend } = require('resend');
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const sendOTPEmail = async (email, name, otp) => {
-  await resend.emails.send({
+  const result = await resend.emails.send({
     from: 'RentEase <onboarding@resend.dev>',
     to: email,
     subject: 'Verify Your Email - RentEase',
@@ -20,10 +20,14 @@ const sendOTPEmail = async (email, name, otp) => {
       </div>
     `,
   });
+  if (result.error) {
+    throw new Error(result.error.message || 'Email delivery failed');
+  }
+  return result;
 };
 
 const sendBookingConfirmationToOwner = async (ownerEmail, ownerName, renterName, itemTitle, startDate, endDate, totalAmount) => {
-  await resend.emails.send({
+  const result = await resend.emails.send({
     from: 'RentEase <onboarding@resend.dev>',
     to: ownerEmail,
     subject: 'New Booking Request - RentEase',
@@ -44,11 +48,15 @@ const sendBookingConfirmationToOwner = async (ownerEmail, ownerName, renterName,
       </div>
     `,
   });
+  if (result.error) {
+    throw new Error(result.error.message || 'Email delivery failed');
+  }
+  return result;
 };
 
 const sendBookingStatusToRenter = async (renterEmail, renterName, itemTitle, status, startDate, endDate, totalAmount) => {
   const isConfirmed = status === 'confirmed';
-  await resend.emails.send({
+  const result = await resend.emails.send({
     from: 'RentEase <onboarding@resend.dev>',
     to: renterEmail,
     subject: `Booking ${isConfirmed ? 'Confirmed' : 'Rejected'} - RentEase`,
@@ -69,6 +77,10 @@ const sendBookingStatusToRenter = async (renterEmail, renterName, itemTitle, sta
       </div>
     `,
   });
+  if (result.error) {
+    throw new Error(result.error.message || 'Email delivery failed');
+  }
+  return result;
 };
 
 module.exports = { sendOTPEmail, sendBookingConfirmationToOwner, sendBookingStatusToRenter };
