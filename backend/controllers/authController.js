@@ -12,22 +12,25 @@ const register = async (req, res) => {
     }
 
     const otp = generateOTP();
-    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
 
     const user = await User.create({ name, email, password, phone, otp, otpExpires });
 
+    let emailSent = true;
     try {
       await sendOTPEmail(email, name, otp);
     } catch (emailErr) {
       console.error('OTP email error:', emailErr.message);
+      emailSent = false;
     }
 
     const token = user.generateToken();
 
     res.status(201).json({
       success: true,
-      message: 'Account created. Please verify your email with the OTP sent.',
+      message: emailSent ? 'Account created. Please verify your email with the OTP sent.' : 'Account created. Email delivery unavailable in test mode - OTP shown below.',
       token,
+      devOtp: emailSent ? undefined : otp,
       user: { _id: user._id, name: user.name, email: user.email, phone: user.phone, avatar: user.avatar, role: user.role, isVerified: user.isVerified },
     });
   } catch (err) {
@@ -70,9 +73,19 @@ const resendOTP = async (req, res) => {
     user.otpExpires = new Date(Date.now() + 10 * 60 * 1000);
     await user.save();
 
-    await sendOTPEmail(user.email, user.name, otp);
+    let emailSent = true;
+    try {
+      await sendOTPEmail(user.email, user.name, otp);
+    } catch (emailErr) {
+      console.error('OTP email error:', emailErr.message);
+      emailSent = false;
+    }
 
-    res.json({ success: true, message: 'OTP resent successfully!' });
+    res.json({
+      success: true,
+      message: emailSent ? 'OTP resent successfully!' : 'Email delivery unavailable in test mode - OTP shown below.',
+      devOtp: emailSent ? undefined : otp,
+    });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

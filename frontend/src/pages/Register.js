@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
+import API from '../services/api';
 
 const Register = ({ darkMode }) => {
   const [form, setForm] = useState({ name: '', email: '', password: '', phone: '' });
   const [loading, setLoading] = useState(false);
-  const { register } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const bg = darkMode ? '#111827' : '#f9fafb';
@@ -22,9 +23,17 @@ const Register = ({ darkMode }) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await register(form.name, form.email, form.password, form.phone);
-      toast.success('Account created! Please verify your email.');
+      const { data } = await API.post('/auth/register', form);
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+
+      if (data.devOtp) {
+        toast.success(`Account created! Test mode OTP: ${data.devOtp}`, { duration: 10000 });
+      } else {
+        toast.success('Account created! Please verify your email.');
+      }
       navigate('/verify-otp');
+      window.location.reload();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Registration failed');
     } finally {

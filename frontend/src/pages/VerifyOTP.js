@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../services/api';
-import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 
 const VerifyOTP = ({ darkMode }) => {
@@ -9,7 +8,6 @@ const VerifyOTP = ({ darkMode }) => {
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
   const navigate = useNavigate();
-  const { user, setUser } = useAuth();
 
   const bg = darkMode ? '#111827' : '#f9fafb';
   const card = darkMode ? '#1f2937' : '#fff';
@@ -23,8 +21,6 @@ const VerifyOTP = ({ darkMode }) => {
     try {
       await API.post('/auth/verify-otp', { otp });
       toast.success('Email verified successfully!');
-      const updatedUser = { ...user, isVerified: true };
-      localStorage.setItem('user', JSON.stringify(updatedUser));
       navigate('/');
       window.location.reload();
     } catch (err) {
@@ -37,8 +33,12 @@ const VerifyOTP = ({ darkMode }) => {
   const handleResend = async () => {
     setResending(true);
     try {
-      await API.post('/auth/resend-otp');
-      toast.success('OTP resent! Check your email.');
+      const { data } = await API.post('/auth/resend-otp');
+      if (data.devOtp) {
+        toast.success(`Test mode OTP: ${data.devOtp}`, { duration: 10000 });
+      } else {
+        toast.success('OTP resent! Check your email.');
+      }
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to resend OTP');
     } finally {
