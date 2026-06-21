@@ -23,6 +23,7 @@ app.use('/api/wishlist',        require('./routes/wishlistRoutes'));
 app.use('/api/search',          require('./routes/searchRoutes'));
 app.use('/api/recommendations', require('./routes/recommendationRoutes'));
 app.use('/api/reviews',         require('./routes/reviewRoutes'));
+app.use('/api/admin',           require('./routes/adminRoutes'));
 
 app.get('/', (req, res) => res.json({ message: 'RentEase API running' }));
 

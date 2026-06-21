@@ -12,6 +12,7 @@ import Profile from './pages/Profile';
 import PublicProfile from './pages/PublicProfile';
 import Wishlist from './pages/Wishlist';
 import VerifyOTP from './pages/VerifyOTP';
+import AdminDashboard from './pages/AdminDashboard';
 import Navbar from './components/Navbar';
 import './index.css';
 
@@ -43,6 +44,7 @@ function App() {
             <Route path="/profile" element={<Profile darkMode={darkMode} />} />
             <Route path="/users/:id" element={<PublicProfile darkMode={darkMode} />} />
             <Route path="/wishlist" element={<Wishlist darkMode={darkMode} />} />
+            <Route path="/admin" element={<AdminDashboard darkMode={darkMode} />} />
           </Routes>
         </div>
       </Router>
