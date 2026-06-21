@@ -39,6 +39,7 @@ const Navbar = ({ darkMode, setDarkMode }) => {
               <Link to="/wishlist" style={{ textDecoration: 'none', color: linkColor, fontWeight: '500' }}>Wishlist</Link>
               <Link to="/dashboard" style={{ textDecoration: 'none', color: linkColor, fontWeight: '500' }}>Dashboard</Link>
               <Link to="/profile" style={{ textDecoration: 'none', color: linkColor, fontWeight: '500' }}>Profile</Link>
+              {user.role === 'admin' && <Link to="/admin" style={{ textDecoration: 'none', color: '#dc2626', fontWeight: '600' }}>Admin</Link>}
               <button onClick={handleLogout} style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '0.5rem 1rem', borderRadius: '8px', cursor: 'pointer', fontWeight: '500' }}>Logout</button>
             </>
           ) : (
@@ -76,6 +77,7 @@ const Navbar = ({ darkMode, setDarkMode }) => {
               <Link to="/wishlist" style={linkStyle} onClick={() => setMenuOpen(false)}>Wishlist</Link>
               <Link to="/dashboard" style={linkStyle} onClick={() => setMenuOpen(false)}>Dashboard</Link>
               <Link to="/profile" style={linkStyle} onClick={() => setMenuOpen(false)}>Profile</Link>
+              {user.role === 'admin' && <Link to="/admin" style={{ ...linkStyle, color: '#dc2626', fontWeight: '600' }} onClick={() => setMenuOpen(false)}>Admin</Link>}
               <button onClick={handleLogout} style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '0.5rem 1rem', borderRadius: '8px', cursor: 'pointer', fontWeight: '500', marginTop: '0.5rem', width: '100%' }}>Logout</button>
             </>
           ) : (
