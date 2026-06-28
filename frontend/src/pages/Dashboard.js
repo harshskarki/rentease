@@ -14,6 +14,8 @@ const Dashboard = ({ darkMode }) => {
   const [loading, setLoading] = useState(true);
   const [reviewModal, setReviewModal] = useState(null);
   const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '' });
+  const [extendModal, setExtendModal] = useState(null);
+  const [newEndDate, setNewEndDate] = useState('');
 
   const bg = darkMode ? '#111827' : '#f9fafb';
   const card = darkMode ? '#1f2937' : '#fff';
@@ -127,6 +129,29 @@ const Dashboard = ({ darkMode }) => {
     }
   };
 
+  const requestExtension = async (e) => {
+    e.preventDefault();
+    try {
+      await API.post(`/bookings/${extendModal._id}/request-extension`, { newEndDate });
+      toast.success('Extension request sent to owner!');
+      setExtendModal(null);
+      setNewEndDate('');
+      fetchData();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to request extension');
+    }
+  };
+
+  const respondToExtension = async (bookingId, approve) => {
+    try {
+      await API.put(`/bookings/${bookingId}/respond-extension`, { approve });
+      toast.success(approve ? 'Extension approved!' : 'Extension rejected');
+      fetchData();
+    } catch (err) {
+      toast.error('Failed to respond to extension');
+    }
+  };
+
   const statusColor = (status) => {
     if (status === 'confirmed') return { bg: '#d1fae5', color: '#065f46' };
     if (status === 'cancelled') return { bg: '#fee2e2', color: '#991b1b' };
@@ -147,10 +172,11 @@ const Dashboard = ({ darkMode }) => {
             <form onSubmit={submitReview}>
               <div style={{ marginBottom: '1rem' }}>
                 <label style={{ display: 'block', fontWeight: '500', marginBottom: '0.4rem', color: text }}>Rating</label>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', gap: '0.25rem' }}>
                   {[1, 2, 3, 4, 5].map(star => (
                     <button key={star} type="button" onClick={() => setReviewForm({ ...reviewForm, rating: star })}
-                      style={{ fontSize: '1.8rem', background: 'none', border: 'none', cursor: 'pointer', color: star <= reviewForm.rating ? '#f59e0b' : '#d1d5db' }}>{star <= reviewForm.rating ? '\u2605' : '\u2606'}
+                      style={{ fontSize: '1.8rem', background: 'none', border: 'none', cursor: 'pointer', color: star <= reviewForm.rating ? '#f59e0b' : '#d1d5db' }}>
+                      {star <= reviewForm.rating ? '\u2605' : '\u2606'}
                     </button>
                   ))}
                 </div>
@@ -169,12 +195,34 @@ const Dashboard = ({ darkMode }) => {
         </div>
       )}
 
+      {/* Extension Modal */}
+      {extendModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: card, padding: '2rem', borderRadius: '16px', width: '90%', maxWidth: '450px' }}>
+            <h3 style={{ margin: '0 0 0.5rem', color: text }}>Request Extension</h3>
+            <p style={{ color: subText, margin: '0 0 1rem', fontSize: '0.9rem' }}>{extendModal.item?.title} - Current end date: {new Date(extendModal.endDate).toLocaleDateString()}</p>
+            <form onSubmit={requestExtension}>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', fontWeight: '500', marginBottom: '0.4rem', color: text }}>New End Date</label>
+                <input type="date" value={newEndDate} onChange={(e) => setNewEndDate(e.target.value)}
+                  min={new Date(new Date(extendModal.endDate).getTime() + 86400000).toISOString().split('T')[0]}
+                  style={input} required />
+              </div>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button type="submit" style={{ flex: 1, padding: '0.75rem', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '500' }}>Send Request</button>
+                <button type="button" onClick={() => { setExtendModal(null); setNewEndDate(''); }} style={{ flex: 1, padding: '0.75rem', background: darkMode ? '#374151' : '#f3f4f6', color: text, border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '500' }}>Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       <div style={{ marginBottom: '1.5rem' }}>
         <h1 style={{ fontSize: '2rem', fontWeight: 'bold', margin: '0 0 0.25rem', color: text }}>Dashboard</h1>
         <p style={{ color: subText, margin: 0 }}>Welcome back, {user?.name}!</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '2rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '2rem' }} className="stats-grid">
         <div style={{ background: card, padding: '1.5rem', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', textAlign: 'center' }}>
           <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#2563eb', margin: 0 }}>{myItems.length}</p>
           <p style={{ color: subText, margin: '0.25rem 0 0', fontSize: '0.9rem' }}>My Listings</p>
@@ -222,24 +270,44 @@ const Dashboard = ({ darkMode }) => {
           {myBookings.length === 0 ? <p style={{ textAlign: 'center', padding: '2rem', color: subText }}>No bookings yet</p> : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               {myBookings.map(b => (
-                <div key={b._id} style={{ background: card, padding: '1rem 1.25rem', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <p style={{ fontWeight: '600', margin: '0 0 0.2rem', color: text }}>{b.item?.title}</p>
-                    <p style={{ color: subText, fontSize: '0.85rem', margin: 0 }}>{new Date(b.startDate).toLocaleDateString()} - {new Date(b.endDate).toLocaleDateString()} - Rs.{b.totalAmount}</p>
+                <div key={b._id} style={{ background: card, padding: '1rem 1.25rem', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+                    <div>
+                      <p style={{ fontWeight: '600', margin: '0 0 0.2rem', color: text }}>{b.item?.title}</p>
+                      <p style={{ color: subText, fontSize: '0.85rem', margin: 0 }}>{new Date(b.startDate).toLocaleDateString()} - {new Date(b.endDate).toLocaleDateString()} - Rs.{b.totalAmount}</p>
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                      {b.status === 'confirmed' && b.payment?.status !== 'paid' && (
+                        <button onClick={() => handlePayment(b)} style={{ background: '#2563eb', color: '#fff', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' }}>Pay Now</button>
+                      )}
+                      {b.status === 'confirmed' && b.payment?.status === 'paid' && b.extensionRequest?.status !== 'pending' && (
+                        <button onClick={() => setExtendModal(b)} style={{ background: '#dbeafe', color: '#1e40af', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' }}>Extend</button>
+                      )}
+                      {b.status === 'confirmed' && b.payment?.status === 'paid' && (
+                        <button onClick={() => markAsCompleted(b._id)} style={{ background: '#d1fae5', color: '#065f46', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' }}>Mark Completed</button>
+                      )}
+                      {b.status === 'completed' && (
+                        <button onClick={() => setReviewModal(b)} style={{ background: '#fef3c7', color: '#92400e', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' }}>Leave Review</button>
+                      )}
+                      {b.payment?.status === 'paid' && <span style={{ background: '#d1fae5', color: '#065f46', padding: '0.3rem 0.8rem', borderRadius: '20px', fontSize: '0.8rem', fontWeight: '500' }}>Paid</span>}
+                      <span style={{ background: statusColor(b.status).bg, color: statusColor(b.status).color, padding: '0.3rem 0.8rem', borderRadius: '20px', fontSize: '0.8rem', fontWeight: '500' }}>{b.status}</span>
+                    </div>
                   </div>
-                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                    {b.status === 'confirmed' && b.payment?.status !== 'paid' && (
-                      <button onClick={() => handlePayment(b)} style={{ background: '#2563eb', color: '#fff', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' }}>Pay Now</button>
-                    )}
-                    {b.status === 'confirmed' && b.payment?.status === 'paid' && (
-                      <button onClick={() => markAsCompleted(b._id)} style={{ background: '#d1fae5', color: '#065f46', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' }}>Mark Completed</button>
-                    )}
-                    {b.status === 'completed' && (
-                      <button onClick={() => setReviewModal(b)} style={{ background: '#fef3c7', color: '#92400e', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' }}>Leave Review</button>
-                    )}
-                    {b.payment?.status === 'paid' && <span style={{ background: '#d1fae5', color: '#065f46', padding: '0.3rem 0.8rem', borderRadius: '20px', fontSize: '0.8rem', fontWeight: '500' }}>Paid</span>}
-                    <span style={{ background: statusColor(b.status).bg, color: statusColor(b.status).color, padding: '0.3rem 0.8rem', borderRadius: '20px', fontSize: '0.8rem', fontWeight: '500' }}>{b.status}</span>
-                  </div>
+                  {b.isLate && b.status !== 'completed' && (
+                    <div style={{ background: '#fee2e2', padding: '0.75rem', borderRadius: '8px', marginTop: '0.75rem' }}>
+                      <p style={{ color: '#991b1b', margin: 0, fontWeight: '500', fontSize: '0.9rem' }}>Overdue by {b.lateDays} day(s). Late fee: Rs.{b.lateFee}</p>
+                    </div>
+                  )}
+                  {b.extensionRequest?.status === 'pending' && (
+                    <div style={{ background: '#fef3c7', padding: '0.75rem', borderRadius: '8px', marginTop: '0.75rem' }}>
+                      <p style={{ color: '#92400e', margin: 0, fontWeight: '500', fontSize: '0.9rem' }}>Extension request pending - new end date: {new Date(b.extensionRequest.newEndDate).toLocaleDateString()}</p>
+                    </div>
+                  )}
+                  {b.extensionRequest?.status === 'approved' && (
+                    <div style={{ background: '#d1fae5', padding: '0.75rem', borderRadius: '8px', marginTop: '0.75rem' }}>
+                      <p style={{ color: '#065f46', margin: 0, fontWeight: '500', fontSize: '0.9rem' }}>Extension approved! New end date: {new Date(b.endDate).toLocaleDateString()}</p>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -252,19 +320,35 @@ const Dashboard = ({ darkMode }) => {
           {ownerBookings.length === 0 ? <p style={{ textAlign: 'center', padding: '2rem', color: subText }}>No booking requests yet</p> : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               {ownerBookings.map(b => (
-                <div key={b._id} style={{ background: card, padding: '1rem 1.25rem', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <p style={{ fontWeight: '600', margin: '0 0 0.2rem', color: text }}>{b.item?.title} - booked by {b.renter?.name}</p>
-                    <p style={{ color: subText, fontSize: '0.85rem', margin: 0 }}>{new Date(b.startDate).toLocaleDateString()} - {new Date(b.endDate).toLocaleDateString()} - Rs.{b.totalAmount}</p>
+                <div key={b._id} style={{ background: card, padding: '1rem 1.25rem', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+                    <div>
+                      <p style={{ fontWeight: '600', margin: '0 0 0.2rem', color: text }}>{b.item?.title} - booked by {b.renter?.name}</p>
+                      <p style={{ color: subText, fontSize: '0.85rem', margin: 0 }}>{new Date(b.startDate).toLocaleDateString()} - {new Date(b.endDate).toLocaleDateString()} - Rs.{b.totalAmount}</p>
+                    </div>
+                    {b.status === 'pending' && (
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button onClick={() => updateBookingStatus(b._id, 'confirmed')} style={{ background: '#d1fae5', color: '#065f46', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' }}>Confirm</button>
+                        <button onClick={() => updateBookingStatus(b._id, 'cancelled')} style={{ background: '#fee2e2', color: '#991b1b', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' }}>Reject</button>
+                      </div>
+                    )}
+                    {b.status !== 'pending' && (
+                      <span style={{ background: statusColor(b.status).bg, color: statusColor(b.status).color, padding: '0.3rem 0.8rem', borderRadius: '20px', fontSize: '0.8rem', fontWeight: '500' }}>{b.status}</span>
+                    )}
                   </div>
-                  {b.status === 'pending' && (
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button onClick={() => updateBookingStatus(b._id, 'confirmed')} style={{ background: '#d1fae5', color: '#065f46', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' }}>Confirm</button>
-                      <button onClick={() => updateBookingStatus(b._id, 'cancelled')} style={{ background: '#fee2e2', color: '#991b1b', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' }}>Reject</button>
+                  {b.isLate && b.status !== 'completed' && (
+                    <div style={{ background: '#fee2e2', padding: '0.75rem', borderRadius: '8px', marginTop: '0.75rem' }}>
+                      <p style={{ color: '#991b1b', margin: 0, fontWeight: '500', fontSize: '0.9rem' }}>Renter is overdue by {b.lateDays} day(s). Late fee: Rs.{b.lateFee}</p>
                     </div>
                   )}
-                  {b.status !== 'pending' && (
-                    <span style={{ background: statusColor(b.status).bg, color: statusColor(b.status).color, padding: '0.3rem 0.8rem', borderRadius: '20px', fontSize: '0.8rem', fontWeight: '500' }}>{b.status}</span>
+                  {b.extensionRequest?.status === 'pending' && (
+                    <div style={{ background: '#fef3c7', padding: '0.75rem', borderRadius: '8px', marginTop: '0.75rem' }}>
+                      <p style={{ color: '#92400e', margin: '0 0 0.5rem', fontWeight: '500', fontSize: '0.9rem' }}>Extension requested - new end date: {new Date(b.extensionRequest.newEndDate).toLocaleDateString()}</p>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button onClick={() => respondToExtension(b._id, true)} style={{ background: '#d1fae5', color: '#065f46', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' }}>Approve</button>
+                        <button onClick={() => respondToExtension(b._id, false)} style={{ background: '#fee2e2', color: '#991b1b', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' }}>Reject</button>
+                      </div>
+                    </div>
                   )}
                 </div>
               ))}
@@ -277,5 +361,3 @@ const Dashboard = ({ darkMode }) => {
 };
 
 export default Dashboard;
-
-

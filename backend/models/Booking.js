@@ -32,6 +32,13 @@ const bookingSchema = new mongoose.Schema({
     paidAt: Date,
   },
   notes: { type: String, maxlength: 500 },
+  lateFee: { type: Number, default: 0 },
+  isLate: { type: Boolean, default: false },
+  extensionRequest: {
+    newEndDate: Date,
+    status: { type: String, enum: ['none', 'pending', 'approved', 'rejected'], default: 'none' },
+    requestedAt: Date,
+  },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Booking', bookingSchema);
